@@ -1,0 +1,25 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Android Studio
+.idea/
+*.iml
+local.properties
+captures/
+*.hprof
+
+# APK / bundles
+app/build/
+*.apk
+*.ap_
+*.aab
+
+# Keystore
+*.jks
+*.keystore
+
+# Misc
+.DS_Store
+Thumbs.db

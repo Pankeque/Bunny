@@ -1,0 +1,58 @@
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    password_hash VARCHAR(255) NOT NULL,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    avatar_url TEXT,
+    theme VARCHAR(20) DEFAULT 'dark',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(255) UNIQUE NOT NULL,
+    expires_at TIMESTAMP NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS servers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    icon_url TEXT,
+    owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    invite_code VARCHAR(20) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS server_members (
+    id SERIAL PRIMARY KEY,
+    server_id INTEGER REFERENCES servers(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    role_id INTEGER,
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(server_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS roles (
+    id SERIAL PRIMARY KEY,
+    server_id INTEGER REFERENCES servers(id) ON DELETE CASCADE,
+    name VARCHAR(50) NOT NULL,
+    color VARCHAR(20) DEFAULT '#99AAB5',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(server_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS channels (
+    id SERIAL PRIMARY KEY,
+    server_id INTEGER REFERENCES servers(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    type VARCHAR(20) DEFAULT 'text',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    channel_id INTEGER REFERENCES channels(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
