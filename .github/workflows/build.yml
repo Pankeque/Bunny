@@ -1,4 +1,4 @@
- name: Build APK
+name: Build APK
 
 on:
   push:
@@ -18,19 +18,21 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Install Gradle
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip wget
+          wget https://services.gradle.org/distributions/gradle-8.2.1-bin.zip -O /tmp/gradle.zip
+          sudo unzip -d /opt/gradle /tmp/gradle.zip
+          echo 'GRADLE_HOME=/opt/gradle/gradle-8.2.1' >> $GITHUB_ENV
+          echo '$GRADLE_HOME/bin' >> $GITHUB_PATH
+          rm /tmp/gradle.zip
+
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
 
-      - name: Install Gradle 8.2.1
-        run: |
-          wget https://services.gradle.org/distributions/gradle-8.2.1-bin.zip -O /tmp/gradle.zip
-          sudo unzip -d /opt/gradle /tmp/gradle.zip
-          echo "GRADLE_HOME=/opt/gradle/gradle-8.2.1" >> $GITHUB_ENV
-          echo "$GRADLE_HOME/bin" >> $GITHUB_PATH
-          rm /tmp/gradle.zip
-
       - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon
+        run: gradle assembleDebug
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
