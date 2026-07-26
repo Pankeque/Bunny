@@ -1,6 +1,6 @@
 # Bunny
 
-Mobile-first communication platform MVP inspired by Discord.
+Mobile-first communication platform MVP.
 
 ## APK Download
 
