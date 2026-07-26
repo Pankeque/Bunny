@@ -15,21 +15,12 @@ A instalação por APK é recomendada para testes e uso sem Google Play.
 2. Abra o arquivo `.apk` no dispositivo.
 3. Toque em **Instalar** e aguarde.
 
-## Gerando o APK localmente
+## Building from Source
 
-```bash
-# Clone o repositório
-git clone https://github.com/Pankeque/Bunny.git
-cd Bunny
+- Linux/macOS: `./gradlew assembleDebug`
+- Windows: `.\gradlew.bat assembleDebug`
 
-# Build do APK de release
-./gradlew assembleRelease
-
-# O APK estará em:
-# app/build/outputs/apk/release/app-release-unsigned.apk
-```
-
-> **Nota:** Para assinar o APK para publicação, utilize `apksigner` do Android SDK.
+Make sure you have JDK 17+ installed.
 
 ## Screenshots
 
