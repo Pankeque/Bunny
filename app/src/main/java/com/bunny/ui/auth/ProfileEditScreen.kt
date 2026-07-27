@@ -26,6 +26,7 @@ import com.bunny.ui.theme.BunnyTheme
 import com.bunny.util.Constants
 import java.net.URI
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifier) {
     val viewModel: AuthViewModel = hiltViewModel()
