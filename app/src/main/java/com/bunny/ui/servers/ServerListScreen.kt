@@ -32,6 +32,7 @@ fun ServerListScreen(
     var intentToLeave by remember { mutableStateOf<Server?>(null) }
     var servers by remember { mutableStateOf<List<Server>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     var joinedServer by remember { mutableStateOf<Server?>(null) }
     var joinMessage by remember { mutableStateOf<String?>(null) }
 
