@@ -1,5 +1,6 @@
 package com.bunny.data.repository
 
+import android.content.SharedPreferences
 import com.bunny.data.local.*
 import com.bunny.data.remote.api.BunnyApi
 import com.bunny.data.remote.dto.*
@@ -7,12 +8,7 @@ import com.bunny.data.remote.mapper.toDomain
 import com.bunny.domain.model.*
 import com.bunny.domain.repository.*
 import com.bunny.util.Constants
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
-import retrofit2.HttpException
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -21,7 +17,7 @@ class AuthRepositoryImpl @Inject constructor(
     private val api: BunnyApi,
     private val refreshTokenDao: RefreshTokenDao,
     private val userDao: UserDao,
-    private val prefs: android.content.SharedPreferences
+    private val prefs: SharedPreferences
 ) : AuthRepository {
     override suspend fun login(username: String, password: String): Result<AuthResponse> {
         return try {

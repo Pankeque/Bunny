@@ -1,6 +1,7 @@
 package com.bunny.di
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.room.Room
 import com.bunny.data.local.BunnyDatabase
 import com.bunny.data.local.dao.*
@@ -82,12 +83,12 @@ object AppModule {
     fun provideMessageDao(database: BunnyDatabase): MessageDao = database.messageDao()
 
     @Provides
-    fun provideSharedPreferences(@ApplicationContext context: Context) =
+    fun provideSharedPreferences(@ApplicationContext context: Context): SharedPreferences =
         context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
 
     @Provides
     @Singleton
-    fun provideAuthRepository(api: BunnyApi, tokenDao: RefreshTokenDao, userDao: UserDao, prefs: android.content.SharedPreferences): AuthRepository {
+    fun provideAuthRepository(api: BunnyApi, tokenDao: RefreshTokenDao, userDao: UserDao, prefs: SharedPreferences): AuthRepository {
         return AuthRepositoryImpl(api, tokenDao, userDao, prefs)
     }
 
