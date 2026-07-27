@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.bunny.domain.model.Channel
 import com.bunny.ui.common.ConfirmDialog
 import com.bunny.ui.theme.BunnyTheme
@@ -23,7 +23,7 @@ import com.bunny.ui.theme.BunnyTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChannelListScreen(
-    navController: NavController,
+    navController: NavHostController,
     serverId: Int,
     modifier: Modifier = Modifier
 ) {

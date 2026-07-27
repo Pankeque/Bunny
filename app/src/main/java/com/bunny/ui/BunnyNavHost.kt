@@ -207,7 +207,7 @@ fun BunnyBottomNav(navController: NavHostController) {
             NavigationBarItem(
                 icon = { Icon(screen.icon, contentDescription = screen.title) },
                 label = { Text(screen.title, style = MaterialTheme.typography.labelMedium) },
-                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                selected = currentDestination?.route == screen.route,
                 onClick = {
                     navController.navigate(screen.route) {
                         popUpTo(navController.graph.startDestinationId)
