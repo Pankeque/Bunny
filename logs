@@ -1,0 +1,90 @@
+2026-07-27T23:41:44.3287375Z ##[group]Run ./gradlew assembleDebug --refresh-dependencies
+./gradlew assembleDebug --refresh-dependencies
+shell: /usr/bin/bash -e {0}
+env:
+  JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+  JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+  ANDROID_HOME: /usr/local/lib/android/sdk
+  ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
+Welcome to Gradle 8.7!
+
+Here are the highlights of this release:
+ - Compiling and testing with Java 22
+ - Cacheable Groovy script compilation
+ - New methods in lazy collection properties
+
+For more details see https://docs.gradle.org/8.7/release-notes.html
+
+Starting a Gradle Daemon (subsequent builds will be faster)
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:generateDebugBuildConfig
+> Task :app:generateDebugResValues
+> Task :app:checkDebugAarMetadata
+> Task :app:mapDebugSourceSetPaths
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:mergeDebugResources
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:parseDebugLocalResources
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:processDebugManifestForPackage
+> Task :app:javaPreCompileDebug
+> Task :app:mergeDebugShaders
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets
+> Task :app:compressDebugAssets
+> Task :app:desugarDebugFileDependencies
+> Task :app:processDebugResources
+> Task :app:checkDebugDuplicateClasses
+> Task :app:mergeDebugStartupProfile
+> Task :app:mergeDebugJniLibFolders
+> Task :app:mergeDebugNativeLibs NO-SOURCE
+> Task :app:stripDebugDebugSymbols NO-SOURCE
+> Task :app:mergeLibDexDebug
+> Task :app:validateSigningDebug
+> Task :app:writeDebugAppMetadata
+> Task :app:writeDebugSigningConfigVersions
+> Task :app:mergeExtDexDebug
+> Task :app:kspDebugKotlin
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/di/AppModule.kt:109:38 Unresolved reference 'Constants'.
+
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/di/AppModule.kt:149:62 No value passed for parameter 'backendDiscovery'.
+> Task :app:compileDebugKotlin FAILED
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:184:29 Unresolved reference 'Enumeration'.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:186:31 Unresolved reference 'hasMoreElements'.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:187:38 Unresolved reference 'nextElement'.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:188:45 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:188:45 Not enough information to infer type argument for 'T'.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:190:40 Unresolved reference 'hostAddress'.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:191:34 Unresolved reference 'isLoopbackAddress'.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:191:76 None of the following candidates is applicable:
+fun <T : Any, R : ClosedRange<T>, Iterable<T>> R.contains(element: T?): Boolean
+fun <T : Any, R : OpenEndRange<T>, Iterable<T>> R.contains(element: T?): Boolean
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:192:39 Unresolved reference 'substringBefore'.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendUrlInterceptor.kt:17:51 Cannot access 'val EMULATOR_HOST: String': it is private in 'com/bunny/util/BackendDiscovery.Companion'.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendUrlInterceptor.kt:20:92 Cannot access 'val EMULATOR_HOST: String': it is private in 'com/bunny/util/BackendDiscovery.Companion'.
+29 actionable tasks: 29 executed
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendUrlInterceptor.kt:23:50 Cannot access 'val DEFAULT_PORT: Int': it is private in 'com/bunny/util/BackendDiscovery.Companion'.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1m 19s
+Process completed with exit code 1.
