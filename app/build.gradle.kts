@@ -40,12 +40,6 @@ android {
     buildFeatures {
         compose = true
     }
-    
-    // REMOVA O BLOCO composeOptions QUE TINHA A VERSÃO 1.5.3
-}
-
-dependencies {
-    // ... outras dependências ...
 
     // Hilt (Atualizado)
     implementation("com.google.dagger:hilt-android:2.51.1")
