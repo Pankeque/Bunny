@@ -37,6 +37,9 @@ fun ServerListScreen(
     var joinedServer by remember { mutableStateOf<Server?>(null) }
     var joinMessage by remember { mutableStateOf<String?>(null) }
 
+    // Crie o SnackbarHostState AQUI, antes do Scaffold
+    val snackbarHostState = remember { SnackbarHostState() }
+
     LaunchedEffect(joinedServer) {
         joinedServer?.let {
             joinMessage = "Joined ${it.name}"
@@ -69,15 +72,17 @@ fun ServerListScreen(
                     )
                 },
                 bottomBar = { com.bunny.ui.BunnyBottomNav(navController) },
-                snackbarHost = { SnackbarHost(it) }
+                // Passe o estado correto aqui
+                snackbarHost = { SnackbarHost(snackbarHostState) }
             ) { padding ->
-                val snackbarHostState = remember { SnackbarHostState() }
+                
                 LaunchedEffect(joinMessage) {
                     joinMessage?.let {
                         snackbarHostState.showSnackbar(it)
                         joinMessage = null
                     }
                 }
+                
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
