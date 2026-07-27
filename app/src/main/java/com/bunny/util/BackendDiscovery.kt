@@ -2,16 +2,12 @@ package com.bunny.util
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
 import androidx.core.content.getSystemService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
-import java.net.InetAddress
 import java.net.NetworkInterface
 import java.net.URL
 import java.util.Collections
@@ -29,6 +25,7 @@ class BackendDiscovery @Inject constructor(
         private const val KEY_BACKEND_IP = "backend_ip"
         private const val KEY_LAST_SUCCESS = "last_success"
         private const val DEFAULT_PORT = 8080
+        private const val EMULATOR_HOST = "10.0.2.2"
         private val COMMON_IPS = arrayOf(
             "192.168.0.1",
             "192.168.1.1",
@@ -36,7 +33,7 @@ class BackendDiscovery @Inject constructor(
             "192.168.1.100",
             "192.168.1.10",
             "192.168.0.10",
-            "10.0.2.2",
+            EMULATOR_HOST,
             "127.0.0.1"
         )
     }
@@ -72,13 +69,13 @@ class BackendDiscovery @Inject constructor(
     }
 
     fun resolveBaseUrlSync(): String {
-        val ip = resolveBackendIpSync() ?: Constants.EMULATOR_HOST
-        return "http://$ip:${Constants.DEFAULT_PORT}/"
+        val ip = resolveBackendIpSync() ?: EMULATOR_HOST
+        return "http://$ip:$DEFAULT_PORT/"
     }
 
     fun resolveSocketUrlSync(): String {
-        val ip = resolveBackendIpSync() ?: Constants.EMULATOR_HOST
-        return "http://$ip:${Constants.DEFAULT_PORT}"
+        val ip = resolveBackendIpSync() ?: EMULATOR_HOST
+        return "http://$ip:$DEFAULT_PORT"
     }
 
     fun resolveBackendIpSync(): String? {
