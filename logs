@@ -1,4 +1,4 @@
-﻿2026-07-27T18:51:57.7334244Z ##[group]Run ./gradlew assembleDebug --refresh-dependencies
+﻿2026-07-27T19:32:40.6593724Z ##[group]Run ./gradlew assembleDebug --refresh-dependencies
 ./gradlew assembleDebug --refresh-dependencies
 shell: /usr/bin/bash -e {0}
 env:
@@ -34,39 +34,32 @@ Starting a Gradle Daemon (subsequent builds will be faster)
 > Task :app:parseDebugLocalResources
 > Task :app:processDebugMainManifest
 > Task :app:processDebugManifest
-> Task :app:mergeDebugShaders
 > Task :app:javaPreCompileDebug
+> Task :app:mergeDebugShaders
 > Task :app:compileDebugShaders NO-SOURCE
 > Task :app:generateDebugAssets UP-TO-DATE
 > Task :app:mergeDebugAssets
 > Task :app:compressDebugAssets
 > Task :app:desugarDebugFileDependencies
-> Task :app:mergeDebugStartupProfile
-> Task :app:mergeDebugJniLibFolders
-> Task :app:checkDebugDuplicateClasses
-> Task :app:mergeDebugNativeLibs NO-SOURCE
 > Task :app:processDebugManifestForPackage
+> Task :app:processDebugResources
+> Task :app:checkDebugDuplicateClasses
+> Task :app:mergeDebugStartupProfile
+> Task :app:kspDebugKotlin
 > Task :app:mergeExtDexDebug
 > Task :app:mergeLibDexDebug
+> Task :app:mergeDebugJniLibFolders
+> Task :app:mergeDebugNativeLibs NO-SOURCE
 > Task :app:stripDebugDebugSymbols NO-SOURCE
-> Task :app:processDebugResources
 > Task :app:validateSigningDebug
 > Task :app:writeDebugAppMetadata
 > Task :app:writeDebugSigningConfigVersions
-> Task :app:kspDebugKotlin
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/BunnyNavHost.kt:210:48 Unresolved reference 'hierarchy'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/BunnyNavHost.kt:210:65 Unresolved reference 'it'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/ProfileEditScreen.kt:51:17 This material API is experimental and is likely to change or to be removed in the future.
 
-> Task :app:compileDebugKotlin FAILED
-28 actionable tasks: 28 executed
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/channels/ChannelListScreen.kt:60:59 Argument type mismatch: actual type is 'androidx.navigation.NavController', but 'androidx.navigation.NavHostController' was expected.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/chat/ChatScreen.kt:20:27 Unresolved reference 'compose'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/chat/ChatScreen.kt:59:17 This material API is experimental and is likely to change or to be removed in the future.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerListScreen.kt:71:59 Argument type mismatch: actual type is 'androidx.navigation.NavController', but 'androidx.navigation.NavHostController' was expected.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerListScreen.kt:72:47 Unresolved reference 'it'.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/chat/ChatScreen.kt:20:35 Unresolved reference 'collectAsState'.
 
 FAILURE: Build failed with an exception.
+> Task :app:compileDebugKotlin FAILED
+28 actionable tasks: 28 executed
 
 * What went wrong:
 Execution failed for task ':app:compileDebugKotlin'.
@@ -79,5 +72,5 @@ Execution failed for task ':app:compileDebugKotlin'.
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 2m 45s
+BUILD FAILED in 3m 7s
 Process completed with exit code 1.
