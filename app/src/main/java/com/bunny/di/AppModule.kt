@@ -2,7 +2,8 @@ package com.bunny.di
 
 import android.content.Context
 import androidx.room.Room
-import com.bunny.data.local.*
+import com.bunny.data.local.BunnyDatabase
+import com.bunny.data.local.dao.*
 import com.bunny.data.remote.api.BunnyApi
 import com.bunny.data.remote.socket.SocketService
 import com.bunny.data.repository.*
@@ -63,6 +64,22 @@ object AppModule {
             "bunny_database"
         ).build()
     }
+
+    // --- FORNECIMENTO EXPLÍCITO DOS DAOS ---
+    @Provides
+    fun provideUserDao(database: BunnyDatabase): UserDao = database.userDao()
+
+    @Provides
+    fun provideRefreshTokenDao(database: BunnyDatabase): RefreshTokenDao = database.refreshTokenDao()
+
+    @Provides
+    fun provideServerDao(database: BunnyDatabase): ServerDao = database.serverDao()
+
+    @Provides
+    fun provideChannelDao(database: BunnyDatabase): ChannelDao = database.channelDao()
+
+    @Provides
+    fun provideMessageDao(database: BunnyDatabase): MessageDao = database.messageDao()
 
     @Provides
     fun provideSharedPreferences(@ApplicationContext context: Context) =
