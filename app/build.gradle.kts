@@ -2,7 +2,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.plugin.compose") // <--- ADICIONE ESTE PLUGIN
+    id("org.jetbrains.kotlin.plugin.compose") 
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
 }
