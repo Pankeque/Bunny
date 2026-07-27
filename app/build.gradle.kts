@@ -45,10 +45,15 @@ android {
 }
 
 dependencies {
-    // ... suas dependências ...
-    
-    // Atualize as versões do Hilt para serem compatíveis com Kotlin 2.0
-    implementation("com.google.dagger:hilt-android:2.51")
-    ksp("com.google.dagger:hilt-android-compiler:2.51")
+    // ... outras dependências ...
+
+    // Hilt (Atualizado)
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    ksp("com.google.dagger:hilt-android-compiler:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    // Room
+    implementation("androidx.room:room-runtime:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
 }
