@@ -3,6 +3,7 @@ package com.bunny.data.remote.socket
 import android.util.Log
 import com.bunny.domain.model.Message
 import com.bunny.util.Constants
+import com.bunny.util.NetworkEnvironment
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import okhttp3.*
@@ -24,7 +25,7 @@ class SocketService @Inject constructor() {
         if (webSocket != null) disconnect()
 
         val request = Request.Builder()
-            .url("${Constants.SOCKET_URL}/ws?token=$accessToken")
+            .url("${NetworkEnvironment.requireSocketUrl()}/ws?token=$accessToken")
             .build()
 
         val listener = object : WebSocketListener() {
