@@ -23,6 +23,7 @@ import com.bunny.domain.repository.MessageRepository
 import com.bunny.domain.repository.RoleRepository
 import com.bunny.domain.repository.ServerRepository
 import com.bunny.domain.repository.UserRepository
+import com.bunny.util.Constants
 import com.bunny.util.BackendDiscovery
 import com.bunny.util.BackendUrlInterceptor
 import com.google.gson.Gson
@@ -146,5 +147,5 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSocketService(): SocketService = SocketService()
+    fun provideSocketService(backendDiscovery: BackendDiscovery): SocketService = SocketService(backendDiscovery)
 }

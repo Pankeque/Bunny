@@ -11,6 +11,7 @@ import java.net.HttpURLConnection
 import java.net.NetworkInterface
 import java.net.URL
 import java.util.Collections
+import java.util.Enumeration
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,11 +22,11 @@ class BackendDiscovery @Inject constructor(
 ) {
 
     companion object {
-        private const val PREFS_NAME = "backend_discovery_prefs"
-        private const val KEY_BACKEND_IP = "backend_ip"
-        private const val KEY_LAST_SUCCESS = "last_success"
-        private const val DEFAULT_PORT = 8080
-        private const val EMULATOR_HOST = "10.0.2.2"
+        const val PREFS_NAME = "backend_discovery_prefs"
+        const val KEY_BACKEND_IP = "backend_ip"
+        const val KEY_LAST_SUCCESS = "last_success"
+        const val DEFAULT_PORT = 8080
+        const val EMULATOR_HOST = "10.0.2.2"
         private val COMMON_IPS = arrayOf(
             "192.168.0.1",
             "192.168.1.1",
