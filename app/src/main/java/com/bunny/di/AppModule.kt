@@ -134,8 +134,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideUserRepository(api: BunnyApi): UserRepository {
-        return UserRepositoryImpl(api)
+    fun provideUserRepository(api: BunnyApi, userDao: UserDao): UserRepository {
+        return UserRepositoryImpl(api, userDao)
     }
 
     @Provides

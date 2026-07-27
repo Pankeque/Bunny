@@ -33,6 +33,7 @@ interface MessageRepository {
 
 interface UserRepository {
     suspend fun updateProfile(username: String?, avatarUrl: String?, theme: String?): Result<User>
+    suspend fun getCurrentUser(userId: Int): Result<User?>
 }
 
 interface RoleRepository {

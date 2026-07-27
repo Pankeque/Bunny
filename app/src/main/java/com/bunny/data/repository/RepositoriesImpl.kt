@@ -9,6 +9,9 @@ import com.bunny.data.local.dao.MessageDao
 import com.bunny.data.local.entity.RefreshTokenEntity
 import com.bunny.data.local.entity.ServerEntity
 import com.bunny.data.local.entity.ChannelEntity
+import com.bunny.data.local.entity.MessageEntity
+import com.bunny.data.local.entity.UserEntity
+import com.bunny.data.local.mapper.toDomain
 import com.bunny.data.remote.api.BunnyApi
 import com.bunny.data.remote.dto.AuthRequestDto
 import com.bunny.data.remote.dto.AuthResponseDto
@@ -111,6 +114,14 @@ class AuthRepositoryImpl @Inject constructor(
                 token = response.refreshToken,
                 userId = response.user.id,
                 expiresAt = ""
+            )
+        )
+        userDao.insertUser(
+            com.bunny.data.local.entity.UserEntity(
+                id = response.user.id,
+                username = response.user.username,
+                avatarUrl = response.user.avatarUrl,
+                theme = response.user.theme ?: "dark"
             )
         )
     }
@@ -310,6 +321,15 @@ class MessageRepositoryImpl @Inject constructor(
             val response = api.getMessages(channelId, page, limit)
             if (response.isSuccessful) {
                 val messages = response.body()!!.map { it.toDomain() }
+                messageDao.insertMessages(messages.map { m ->
+                    com.bunny.data.local.entity.MessageEntity(
+                        id = m.id,
+                        channelId = m.channelId,
+                        userId = m.userId,
+                        content = m.content,
+                        createdAt = m.createdAt
+                    )
+                })
                 Result.success(messages)
             } else {
                 Result.failure(Exception("Failed to fetch messages"))
@@ -323,7 +343,17 @@ class MessageRepositoryImpl @Inject constructor(
         return try {
             val response = api.sendMessage(channelId, SendMessageRequestDto(content))
             if (response.isSuccessful) {
-                Result.success(response.body()!!.toDomain())
+                val message = response.body()!!.toDomain()
+                messageDao.insertMessage(
+                    com.bunny.data.local.entity.MessageEntity(
+                        id = message.id,
+                        channelId = message.channelId,
+                        userId = message.userId,
+                        content = message.content,
+                        createdAt = message.createdAt
+                    )
+                )
+                Result.success(message)
             } else {
                 Result.failure(Exception("Failed to send message"))
             }
@@ -335,16 +365,35 @@ class MessageRepositoryImpl @Inject constructor(
 
 @Singleton
 class UserRepositoryImpl @Inject constructor(
-    private val api: BunnyApi
+    private val api: BunnyApi,
+    private val userDao: UserDao
 ) : UserRepository {
     override suspend fun updateProfile(username: String?, avatarUrl: String?, theme: String?): Result<User> {
         return try {
             val response = api.updateProfile(UpdateUserRequestDto(username, avatarUrl, theme))
             if (response.isSuccessful) {
-                Result.success(response.body()!!.toDomain())
+                val body = response.body()!!.toDomain()
+                userDao.insertUser(
+                    com.bunny.data.local.entity.UserEntity(
+                        id = body.id,
+                        username = body.username,
+                        avatarUrl = body.avatarUrl,
+                        theme = body.theme
+                    )
+                )
+                Result.success(body)
             } else {
                 Result.failure(Exception("Failed to update profile"))
             }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getCurrentUser(userId: Int): Result<User?> {
+        return try {
+            val user = userDao.getUserById(userId)
+            Result.success(user?.toDomain())
         } catch (e: Exception) {
             Result.failure(e)
         }

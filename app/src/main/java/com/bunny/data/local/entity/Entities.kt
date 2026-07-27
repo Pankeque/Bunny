@@ -2,14 +2,13 @@ package com.bunny.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import androidx.room.TypeConverters
-import com.bunny.data.local.converter.Converters
 
 @Entity(tableName = "users")
 data class UserEntity(
     @PrimaryKey val id: Int,
     val username: String,
-    val avatarUrl: String?
+    val avatarUrl: String?,
+    val theme: String = "dark"
 )
 
 @Entity(tableName = "servers")
