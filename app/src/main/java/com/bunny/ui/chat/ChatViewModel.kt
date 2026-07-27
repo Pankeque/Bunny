@@ -64,7 +64,7 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             val userId = prefs.getInt(Constants.KEY_USER_ID, 0)
             val username = prefs.getString(Constants.KEY_USERNAME, "") ?: ""
-            onResult(User(userId, username, null, null))
+            onResult(User(userId, username, null, "dark"))
         }
     }
 
