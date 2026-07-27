@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bunny.ui.common.ErrorDialog
+import com.bunny.ui.theme.BunnyTheme
 import com.bunny.util.Constants
 
 @OptIn(ExperimentalMaterial3Api::class)

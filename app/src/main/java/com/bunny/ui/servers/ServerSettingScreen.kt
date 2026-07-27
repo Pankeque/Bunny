@@ -15,6 +15,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.bunny.ui.common.ConfirmDialog
 import com.bunny.ui.theme.BunnyTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -135,7 +136,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
             onConfirm = {
                 isLoading = true
                 intentToDelete = false
-                viewModel.deleteServer(serverId) { result ->
+                viewModel.leaveServer(serverId) { result ->
                     isLoading = false
                     result.onSuccess {
                         navController.navigate("servers") {

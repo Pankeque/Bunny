@@ -98,7 +98,7 @@ class AuthRepositoryImpl @Inject constructor(
         prefs.edit().clear().apply()
     }
 
-    private fun saveTokens(response: AuthResponseDto) {
+    private suspend fun saveTokens(response: AuthResponseDto) {
         prefs.edit()
             .putString(Constants.KEY_ACCESS_TOKEN, response.accessToken)
             .putString(Constants.KEY_REFRESH_TOKEN, response.refreshToken)

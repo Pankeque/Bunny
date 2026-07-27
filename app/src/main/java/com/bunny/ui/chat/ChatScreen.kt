@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.collectAsState
 import androidx.navigation.NavController
 import com.bunny.domain.model.Message
 import com.bunny.ui.theme.BunnyTheme
@@ -30,7 +30,7 @@ fun ChatScreen(
     modifier: Modifier = Modifier
 ) {
     val viewModel: ChatViewModel = hiltViewModel()
-    val messages by viewModel.messages.collectAsStateWithLifecycle()
+    val messages by viewModel.messages.collectAsState()
     var inputText by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var channelName by remember { mutableStateOf("Channel $channelId") }

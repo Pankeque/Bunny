@@ -38,9 +38,9 @@ class AuthViewModel @Inject constructor(
             } else {
                 AuthState.Error(result.exceptionOrNull()?.message ?: "Login failed")
             }
-            result.onSuccess { token ->
-                socketService.connect(token)
-                onResult(Result.success(token))
+            result.onSuccess { response ->
+                socketService.connect(response.accessToken)
+                onResult(Result.success(response.accessToken))
             }.onFailure { e ->
                 onResult(Result.failure(e))
             }
@@ -56,9 +56,9 @@ class AuthViewModel @Inject constructor(
             } else {
                 AuthState.Error(result.exceptionOrNull()?.message ?: "Registration failed")
             }
-            result.onSuccess { token ->
-                socketService.connect(token)
-                onResult(Result.success(token))
+            result.onSuccess { response ->
+                socketService.connect(response.accessToken)
+                onResult(Result.success(response.accessToken))
             }.onFailure { e ->
                 onResult(Result.failure(e))
             }
