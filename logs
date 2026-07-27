@@ -1,4 +1,4 @@
-2026-07-27T18:08:24.0954159Z ##[group]Run ./gradlew assembleDebug --refresh-dependencies
+﻿2026-07-27T18:17:44.1069129Z ##[group]Run ./gradlew assembleDebug --refresh-dependencies
 ./gradlew assembleDebug --refresh-dependencies
 shell: /usr/bin/bash -e {0}
 env:
@@ -39,25 +39,24 @@ Starting a Gradle Daemon (subsequent builds will be faster)
 > Task :app:compileDebugShaders NO-SOURCE
 > Task :app:generateDebugAssets UP-TO-DATE
 > Task :app:mergeDebugAssets
-> Task :app:processDebugManifestForPackage
 > Task :app:compressDebugAssets
 > Task :app:desugarDebugFileDependencies
-> Task :app:processDebugResources
-> Task :app:checkDebugDuplicateClasses
 > Task :app:mergeDebugStartupProfile
-
-e: [ksp] InjectProcessingStep was unable to process 'AuthRepositoryImpl(com.bunny.data.remote.api.BunnyApi,error.NonExistentClass,error.NonExistentClass,android.content.SharedPreferences)' because 'error.NonExistentClass' could not be resolved.
-
-> Task :app:kspDebugKotlin
-Dependency trace:
-    => element (CLASS): com.bunny.data.repository.AuthRepositoryImpl
-    => element (CONSTRUCTOR): AuthRepositoryImpl(com.bunny.data.remote.api.BunnyApi,error.NonExistentClass,error.NonExistentClass,android.content.SharedPreferences)
-    => type (EXECUTABLE constructor): (com.bunny.data.remote.api.BunnyApi,error.NonExistentClass,error.NonExistentClass,android.content.SharedPreferences)void
-    => type (ERROR parameter type): error.NonExistentClass
-
-If type 'error.NonExistentClass' is a generated type, check above for compilation errors that may have prevented the type from being generated. Otherwise, ensure that type 'error.NonExistentClass' is on your classpath.
+> Task :app:processDebugManifestForPackage
+> Task :app:checkDebugDuplicateClasses
+> Task :app:processDebugResources
+> Task :app:mergeExtDexDebug
+> Task :app:mergeLibDexDebug
+> Task :app:mergeDebugJniLibFolders
+> Task :app:mergeDebugNativeLibs NO-SOURCE
+> Task :app:stripDebugDebugSymbols NO-SOURCE
+> Task :app:validateSigningDebug
+> Task :app:writeDebugAppMetadata
+> Task :app:writeDebugSigningConfigVersions
 e: [ksp] InjectProcessingStep was unable to process 'ServerRepositoryImpl(com.bunny.data.remote.api.BunnyApi,error.NonExistentClass)' because 'error.NonExistentClass' could not be resolved.
 
+
+> Task :app:kspDebugKotlin FAILED
 Dependency trace:
     => element (CLASS): com.bunny.data.repository.ServerRepositoryImpl
     => element (CONSTRUCTOR): ServerRepositoryImpl(com.bunny.data.remote.api.BunnyApi,error.NonExistentClass)
@@ -94,11 +93,8 @@ Dependency trace:
 If type 'error.NonExistentClass' is a generated type, check above for compilation errors that may have prevented the type from being generated. Otherwise, ensure that type 'error.NonExistentClass' is on your classpath.
 e: Error occurred in KSP, check log for detail
 
-> Task :app:kspDebugKotlin FAILED
-> Task :app:mergeExtDexDebug
-
+27 actionable tasks: 27 executed
 FAILURE: Build failed with an exception.
-22 actionable tasks: 22 executed
 
 * What went wrong:
 Execution failed for task ':app:kspDebugKotlin'.
@@ -111,5 +107,5 @@ Execution failed for task ':app:kspDebugKotlin'.
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 2m 44s
+BUILD FAILED in 2m 46s
 Process completed with exit code 1.
