@@ -1,5 +1,5 @@
 package com.bunny.ui.chat
-
+import androidx.compose.runtime.collectAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
