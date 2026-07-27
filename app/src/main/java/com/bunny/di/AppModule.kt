@@ -23,7 +23,8 @@ import com.bunny.domain.repository.MessageRepository
 import com.bunny.domain.repository.RoleRepository
 import com.bunny.domain.repository.ServerRepository
 import com.bunny.domain.repository.UserRepository
-import com.bunny.util.Constants
+import com.bunny.util.BackendDiscovery
+import com.bunny.util.BackendUrlInterceptor
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -48,7 +49,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideBackendDiscovery(@ApplicationContext context: Context): BackendDiscovery {
+        return BackendDiscovery(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(backendDiscovery: BackendDiscovery): OkHttpClient {
         return OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
@@ -56,6 +63,7 @@ object AppModule {
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })
+            .addInterceptor(BackendUrlInterceptor(backendDiscovery))
             .build()
     }
 
@@ -63,7 +71,7 @@ object AppModule {
     @Singleton
     fun provideBunnyApi(client: OkHttpClient, gson: Gson): BunnyApi {
         return Retrofit.Builder()
-            .baseUrl(Constants.BASE_URL)
+            .baseUrl("http://10.0.2.2:8080/")
             .client(client)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
