@@ -1,4 +1,4 @@
-﻿2026-07-27T18:32:38.5134953Z ##[group]Run ./gradlew assembleDebug --refresh-dependencies
+﻿2026-07-27T18:51:57.7334244Z ##[group]Run ./gradlew assembleDebug --refresh-dependencies
 ./gradlew assembleDebug --refresh-dependencies
 shell: /usr/bin/bash -e {0}
 env:
@@ -34,138 +34,37 @@ Starting a Gradle Daemon (subsequent builds will be faster)
 > Task :app:parseDebugLocalResources
 > Task :app:processDebugMainManifest
 > Task :app:processDebugManifest
-> Task :app:processDebugManifestForPackage
-> Task :app:javaPreCompileDebug
 > Task :app:mergeDebugShaders
+> Task :app:javaPreCompileDebug
 > Task :app:compileDebugShaders NO-SOURCE
 > Task :app:generateDebugAssets UP-TO-DATE
 > Task :app:mergeDebugAssets
 > Task :app:compressDebugAssets
 > Task :app:desugarDebugFileDependencies
-> Task :app:processDebugResources
-> Task :app:checkDebugDuplicateClasses
 > Task :app:mergeDebugStartupProfile
-> Task :app:kspDebugKotlin
-> Task :app:mergeExtDexDebug
 > Task :app:mergeDebugJniLibFolders
-> Task :app:mergeLibDexDebug
+> Task :app:checkDebugDuplicateClasses
 > Task :app:mergeDebugNativeLibs NO-SOURCE
+> Task :app:processDebugManifestForPackage
+> Task :app:mergeExtDexDebug
+> Task :app:mergeLibDexDebug
 > Task :app:stripDebugDebugSymbols NO-SOURCE
+> Task :app:processDebugResources
 > Task :app:validateSigningDebug
 > Task :app:writeDebugAppMetadata
 > Task :app:writeDebugSigningConfigVersions
+> Task :app:kspDebugKotlin
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/BunnyNavHost.kt:210:48 Unresolved reference 'hierarchy'.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/BunnyNavHost.kt:210:65 Unresolved reference 'it'.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/ProfileEditScreen.kt:51:17 This material API is experimental and is likely to change or to be removed in the future.
 
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/data/repository/RepositoriesImpl.kt:109:25 Suspend function 'suspend fun insertToken(token: RefreshTokenEntity): Unit' should be called only from a coroutine or another suspend function.
 > Task :app:compileDebugKotlin FAILED
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/di/AppModule.kt:35:16 Unresolved reference 'logging'.
 28 actionable tasks: 28 executed
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/di/AppModule.kt:56:29 Unresolved reference 'HttpLoggingInterceptor'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/di/AppModule.kt:56:54 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/di/AppModule.kt:56:60 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/di/AppModule.kt:57:17 Unresolved reference 'level'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/di/AppModule.kt:57:25 Unresolved reference 'HttpLoggingInterceptor'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/di/AppModule.kt:59:14 Unresolved reference 'build'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/BunnyNavHost.kt:53:29 Argument type mismatch: actual type is 'androidx.navigation.NavController', but 'androidx.navigation.NavHostController' was expected.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/BunnyNavHost.kt:84:29 Argument type mismatch: actual type is 'androidx.navigation.NavController', but 'androidx.navigation.NavHostController' was expected.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/BunnyNavHost.kt:133:40 Unresolved reference 'currentBackStackEntryAsState'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/BunnyNavHost.kt:144:53 Unresolved reference 'findStartDestination'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/BunnyNavHost.kt:144:82 Cannot access 'var saveState: Boolean': it is private in 'androidx/navigation/NavOptionsBuilder'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/BunnyNavHost.kt:155:53 Unresolved reference 'findStartDestination'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/BunnyNavHost.kt:155:82 Cannot access 'var saveState: Boolean': it is private in 'androidx/navigation/NavOptionsBuilder'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/BunnyNavHost.kt:201:47 Unresolved reference 'currentBackStackEntryAsState'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/BunnyNavHost.kt:207:65 Unresolved reference 'it'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/BunnyNavHost.kt:210:53 Unresolved reference 'findStartDestination'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/BunnyNavHost.kt:210:82 Cannot access 'var saveState: Boolean': it is private in 'androidx/navigation/NavOptionsBuilder'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/AuthViewModel.kt:42:39 Argument type mismatch: actual type is 'com.bunny.domain.model.AuthResponse', but 'kotlin.String' was expected.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/AuthViewModel.kt:43:26 Argument type mismatch: actual type is 'kotlin.Result<com.bunny.domain.model.AuthResponse>', but 'kotlin.Result<kotlin.String>' was expected.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/AuthViewModel.kt:60:39 Argument type mismatch: actual type is 'com.bunny.domain.model.AuthResponse', but 'kotlin.String' was expected.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/AuthViewModel.kt:61:26 Argument type mismatch: actual type is 'kotlin.Result<com.bunny.domain.model.AuthResponse>', but 'kotlin.Result<kotlin.String>' was expected.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/LoginScreen.kt:39:5 Unresolved reference 'BunnyTheme'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/LoginScreen.kt:40:9 @Composable invocations can only happen from the context of a @Composable function
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/ProfileEditScreen.kt:50:17 This material API is experimental and is likely to change or to be removed in the future.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/ProfileEditScreen.kt:123:37 Unresolved reference 'Color'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/ProfileEditScreen.kt:130:37 Unresolved reference 'Color'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/ProfileEditScreen.kt:137:37 Unresolved reference 'Color'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/ProfileEditScreen.kt:210:38 Unresolved reference 'Color'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/ProfileScreen.kt:22:29 Unresolved reference 'remember'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/ProfileScreen.kt:22:38 Unresolved reference 'mutableStateOf'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/ProfileScreen.kt:22:40 Unresolved reference 'mutableStateOf'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/ProfileScreen.kt:23:21 Unresolved reference 'remember'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/ProfileScreen.kt:23:30 Unresolved reference 'mutableStateOf'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/ProfileScreen.kt:23:32 Unresolved reference 'mutableStateOf'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/auth/ProfileScreen.kt:26:5 Unresolved reference 'LaunchedEffect'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/channels/ChannelListScreen.kt:103:22 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/channels/ChannelListScreen.kt:103:26 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/channels/ChannelListScreen.kt:104:9 Unresolved reference 'ConfirmDialog'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/channels/ChannelSettingScreen.kt:124:21 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/channels/ChannelSettingScreen.kt:124:25 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/channels/ChannelSettingScreen.kt:125:9 Unresolved reference 'ConfirmDialog'.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/channels/ChannelListScreen.kt:60:59 Argument type mismatch: actual type is 'androidx.navigation.NavController', but 'androidx.navigation.NavHostController' was expected.
 e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/chat/ChatScreen.kt:20:27 Unresolved reference 'compose'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/chat/ChatScreen.kt:33:40 Unresolved reference 'collectAsStateWithLifecycle'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/chat/ChatScreen.kt:50:29 Function invocation 'size(...)' expected.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/chat/ChatScreen.kt:51:22 Overload resolution ambiguity between candidates:
-fun <T> Array<out T>.isNotEmpty(): Boolean
-fun BooleanArray.isNotEmpty(): Boolean
-fun ByteArray.isNotEmpty(): Boolean
-fun CharArray.isNotEmpty(): Boolean
-fun DoubleArray.isNotEmpty(): Boolean
-fun FloatArray.isNotEmpty(): Boolean
-fun IntArray.isNotEmpty(): Boolean
-fun LongArray.isNotEmpty(): Boolean
-fun ShortArray.isNotEmpty(): Boolean
-fun <T> Collection<T>.isNotEmpty(): Boolean
-fun <K, V> Map<out K, V>.isNotEmpty(): Boolean
-fun CharSequence.isNotEmpty(): Boolean
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/chat/ChatScreen.kt:52:52 Function invocation 'size(...)' expected.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/chat/ChatScreen.kt:52:57 Overload resolution ambiguity between candidates:
-fun <T> Iterable<T>.minus(element: T): List<T>
-fun <K, V> Map<out K, V>.minus(key: K): Map<K, V>
-fun <T> Set<T>.minus(element: T): Set<T>
-fun <T> Sequence<T>.minus(element: T): Sequence<T>
 e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/chat/ChatScreen.kt:59:17 This material API is experimental and is likely to change or to be removed in the future.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/chat/ChatScreen.kt:74:36 Overload resolution ambiguity between candidates:
-fun <T> Array<out T>.reversed(): List<T>
-fun BooleanArray.reversed(): List<Boolean>
-fun ByteArray.reversed(): List<Byte>
-fun CharArray.reversed(): List<Char>
-fun DoubleArray.reversed(): List<Double>
-fun FloatArray.reversed(): List<Float>
-fun IntArray.reversed(): List<Int>
-fun LongArray.reversed(): List<Long>
-fun ShortArray.reversed(): List<Short>
-fun <T> Iterable<T>.reversed(): List<T>
-fun UByteArray.reversed(): List<UByte>
-fun UIntArray.reversed(): List<UInt>
-fun ULongArray.reversed(): List<ULong>
-fun UShortArray.reversed(): List<UShort>
-fun CharProgression.reversed(): CharProgression
-fun IntProgression.reversed(): IntProgression
-fun LongProgression.reversed(): LongProgression
-fun UIntProgression.reversed(): UIntProgression
-fun ULongProgression.reversed(): ULongProgression
-fun CharSequence.reversed(): CharSequence
-fun String.reversed(): String
-fun <T> Comparator<T>.reversed(): Comparator<T>
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/chat/ChatScreen.kt:76:39 Argument type mismatch: actual type is 'kotlin.Int', but 'com.bunny.domain.model.Message' was expected.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/chat/ChatScreen.kt:77:53 Unresolved reference 'userId'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/RoleManagementScreen.kt:97:19 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/RoleManagementScreen.kt:97:23 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/RoleManagementScreen.kt:98:9 Unresolved reference 'ConfirmDialog'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerListScreen.kt:71:47 Unresolved reference 'it'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerListScreen.kt:162:20 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerListScreen.kt:162:24 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerListScreen.kt:163:9 Unresolved reference 'ConfirmDialog'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerSettingScreen.kt:131:21 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerSettingScreen.kt:131:25 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerSettingScreen.kt:132:9 Unresolved reference 'ConfirmDialog'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerSettingScreen.kt:135:25 Unresolved reference 'deleteServer'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerSettingScreen.kt:138:27 Unresolved reference 'deleteServer'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerSettingScreen.kt:138:52 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerSettingScreen.kt:140:28 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerSettingScreen.kt:140:28 Not enough information to infer type argument for 'T'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerSettingScreen.kt:140:38 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerSettingScreen.kt:144:23 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerSettingScreen.kt:144:23 Not enough information to infer type argument for 'T'.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerListScreen.kt:71:59 Argument type mismatch: actual type is 'androidx.navigation.NavController', but 'androidx.navigation.NavHostController' was expected.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/ui/servers/ServerListScreen.kt:72:47 Unresolved reference 'it'.
 
 FAILURE: Build failed with an exception.
 
@@ -180,5 +79,5 @@ Execution failed for task ':app:compileDebugKotlin'.
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 2m 55s
+BUILD FAILED in 2m 45s
 Process completed with exit code 1.
