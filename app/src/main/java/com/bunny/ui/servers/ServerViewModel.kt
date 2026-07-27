@@ -3,6 +3,7 @@ package com.bunny.ui.servers
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bunny.domain.repository.ServerRepository
+import com.bunny.domain.repository.RoleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
