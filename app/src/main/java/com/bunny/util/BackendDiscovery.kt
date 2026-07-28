@@ -26,7 +26,7 @@ class BackendDiscovery @Inject constructor(
         const val KEY_BACKEND_IP = "backend_ip"
         const val KEY_LAST_SUCCESS = "last_success"
         const val DEFAULT_PORT = 8080
-        const val EMULATOR_HOST = "10.0.2.2"
+
         private val COMMON_IPS = arrayOf(
             "192.168.0.1",
             "192.168.1.1",
@@ -34,7 +34,6 @@ class BackendDiscovery @Inject constructor(
             "192.168.1.100",
             "192.168.1.10",
             "192.168.0.10",
-            EMULATOR_HOST,
             "127.0.0.1"
         )
     }
@@ -53,9 +52,7 @@ class BackendDiscovery @Inject constructor(
     }
 
     suspend fun resolveBackendIp(): String = withContext(Dispatchers.IO) {
-        if (isEmulator()) return@withContext "10.0.2.2"
-
-        val cachedIp = readCachedIp()
+                val cachedIp = readCachedIp()
         if (!cachedIp.isNullOrBlank() && probeBackend(cachedIp)) {
             return@withContext cachedIp
         }
@@ -70,12 +67,12 @@ class BackendDiscovery @Inject constructor(
     }
 
     fun resolveBaseUrlSync(): String {
-        val ip = resolveBackendIpSync() ?: EMULATOR_HOST
+        val ip = resolveBackendIpSync() ?: COMMON_IPS.first()
         return "http://$ip:$DEFAULT_PORT/"
     }
 
     fun resolveSocketUrlSync(): String {
-        val ip = resolveBackendIpSync() ?: EMULATOR_HOST
+        val ip = resolveBackendIpSync() ?: COMMON_IPS.first()
         return "http://$ip:$DEFAULT_PORT"
     }
 
@@ -118,20 +115,6 @@ class BackendDiscovery @Inject constructor(
         } catch (e: Exception) {
             null
         }
-    }
-
-    private fun isEmulator(): Boolean {
-        return Build.FINGERPRINT.contains("generic")
-                || Build.FINGERPRINT.contains("unknown")
-                || Build.MODEL.contains("google_sdk")
-                || Build.MODEL.contains("Emulator")
-                || Build.MODEL.contains("Android SDK built for x86")
-                || Build.MODEL.contains("VirtualBox")
-                || Build.MODEL.contains("VMware")
-                || Build.PRODUCT.contains("default")
-                || Build.PRODUCT.contains("simulator")
-                || Build.PRODUCT.contains("sdk")
-                || Build.PRODUCT.contains("emulator")
     }
 
     private fun readCachedIp(): String? {
@@ -232,3 +215,4 @@ class BackendDiscovery @Inject constructor(
         }
     }
 }
+

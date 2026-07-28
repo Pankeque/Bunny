@@ -8,6 +8,6 @@ object Constants {
     const val KEY_USERNAME = "username"
     const val KEY_THEME = "theme"
     const val DEFAULT_PORT = 8080
-    const val EMULATOR_HOST = "10.0.2.2"
+
     const val DEFAULT_BACKEND_PATH_PREFIX = ""
 }
