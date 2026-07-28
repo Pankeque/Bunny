@@ -1,5 +1,6 @@
 package com.bunny.ui.auth
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bunny.data.remote.socket.SocketService
@@ -39,7 +40,11 @@ class AuthViewModel @Inject constructor(
                 AuthState.Error(result.exceptionOrNull()?.message ?: "Login failed")
             }
             result.onSuccess { response ->
-                socketService.connect(response.accessToken)
+                try {
+                    socketService.connect(response.accessToken)
+                } catch (e: Exception) {
+                    Log.e("AuthViewModel", "Failed to connect socket after login", e)
+                }
                 onResult(Result.success(response.accessToken))
             }.onFailure { e ->
                 onResult(Result.failure(e))
@@ -57,7 +62,11 @@ class AuthViewModel @Inject constructor(
                 AuthState.Error(result.exceptionOrNull()?.message ?: "Registration failed")
             }
             result.onSuccess { response ->
-                socketService.connect(response.accessToken)
+                try {
+                    socketService.connect(response.accessToken)
+                } catch (e: Exception) {
+                    Log.e("AuthViewModel", "Failed to connect socket after registration", e)
+                }
                 onResult(Result.success(response.accessToken))
             }.onFailure { e ->
                 onResult(Result.failure(e))

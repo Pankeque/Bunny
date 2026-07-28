@@ -46,17 +46,17 @@ class BackendDiscovery @Inject constructor(
             return@withContext discoveredIp
         }
 
-        throw IllegalStateException("Backend not found via mDNS")
+        return@withContext null
     }
 
-    fun resolveBaseUrlSync(): String {
-        val ip = resolveBackendIpSync() ?: throw IllegalStateException("Backend not found via mDNS")
-        return "http://$ip:$DEFAULT_PORT/"
+    fun resolveBaseUrlSync(): String? {
+        val ip = resolveBackendIpSync()
+        return ip?.let { "http://$it:$DEFAULT_PORT/" }
     }
 
-    fun resolveSocketUrlSync(): String {
-        val ip = resolveBackendIpSync() ?: throw IllegalStateException("Backend not found via mDNS")
-        return "http://$ip:$DEFAULT_PORT"
+    fun resolveSocketUrlSync(): String? {
+        val ip = resolveBackendIpSync()
+        return ip?.let { "http://$it:$DEFAULT_PORT" }
     }
 
     fun resolveBackendIpSync(): String? {

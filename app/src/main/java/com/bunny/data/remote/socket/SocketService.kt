@@ -27,7 +27,7 @@ class SocketService @Inject constructor(
         if (webSocket != null) disconnect()
 
         val socketUrl = backendDiscovery.resolveSocketUrlSync()
-        if (socketUrl.isBlank()) {
+        if (socketUrl.isNullOrBlank()) {
             Log.w("Socket", "Backend not discovered, skipping WebSocket connect")
             return
         }
