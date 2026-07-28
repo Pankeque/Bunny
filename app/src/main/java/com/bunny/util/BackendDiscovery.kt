@@ -85,6 +85,35 @@ class BackendDiscovery @Inject constructor(
             if (!cachedIp.isNullOrBlank() && probeBackend(cachedIp)) {
                 return cachedIp
             }
+            buildCandidateIps().firstOrNull { probeBackend(it) }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun fallbackLocalGateway(): String? {
+        return try {
+            val wifiManager = context.getSystemService<WifiManager>()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val info = wifiManager?.dhcpInfo
+                if (info != null && info.gateway != 0) {
+                    val gateway = (info.gateway and 0xFF).toString() + "." +
+                            (info.gateway shr 8 and 0xFF) + "." +
+                            (info.gateway shr 16 and 0xFF) + "." +
+                            (info.gateway shr 24 and 0xFF)
+                    if (probeBackend(gateway)) return gateway
+                }
+            } else {
+                val raw = wifiManager?.connectionInfo?.ipAddress ?: return null
+                if (raw != 0) {
+                    val subnet = ((raw and 0xFF).toString() + "." +
+                            (raw shr 8 and 0xFF) + "." +
+                            (raw shr 16 and 0xFF) + "." +
+                            (raw shr 24 and 0xFF)).substringBeforeLast(".")
+                    val gateway = "$subnet.1"
+                    if (probeBackend(gateway)) return gateway
+                }
+            }
             null
         } catch (e: Exception) {
             null
@@ -141,21 +170,16 @@ class BackendDiscovery @Inject constructor(
     private fun getWifiGateway(): String? {
         return try {
             val wifiManager = context.getSystemService<WifiManager>()
-            val dhcp = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                wifiManager?.dhcpInfo
-            } else {
-                wifiManager?.connectionInfo?.ipAddress?.let { raw ->
-                    if (raw == 0) null else {
-                        val ip = (raw and 0xFF).toString() + "." +
-                                (raw shr 8 and 0xFF) + "." +
-                                (raw shr 16 and 0xFF) + "." +
-                                (raw shr 24 and 0xFF)
-                        val subnet = ip.substringBeforeLast(".")
-                        "$subnet.1"
-                    }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val info = wifiManager?.dhcpInfo
+                if (info == null || info.gateway == 0) null else {
+                    val ip = (info.gateway and 0xFF).toString() + "." +
+                            (info.gateway shr 8 and 0xFF) + "." +
+                            (info.gateway shr 16 and 0xFF) + "." +
+                            (info.gateway shr 24 and 0xFF)
+                    ip
                 }
-            }
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            } else {
                 val raw = wifiManager?.connectionInfo?.ipAddress ?: return null
                 if (raw == 0) null else {
                     val ip = (raw and 0xFF).toString() + "." +
@@ -164,15 +188,6 @@ class BackendDiscovery @Inject constructor(
                             (raw shr 24 and 0xFF)
                     val subnet = ip.substringBeforeLast(".")
                     "$subnet.1"
-                }
-            } else {
-                val info = wifiManager?.dhcpInfo
-                if (info == null || info.gateway == 0) null else {
-                    val ip = (info.gateway and 0xFF).toString() + "." +
-                            (info.gateway shr 8 and 0xFF) + "." +
-                            (info.gateway shr 16 and 0xFF) + "." +
-                            (info.gateway shr 24 and 0xFF)
-                    ip
                 }
             }
         } catch (e: Exception) {

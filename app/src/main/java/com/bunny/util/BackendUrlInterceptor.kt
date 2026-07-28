@@ -14,10 +14,16 @@ class BackendUrlInterceptor @Inject constructor(
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         var request = chain.request()
-        val baseHost = BackendDiscovery.Companion.EMULATOR_HOST
+        val baseHost = request.url.host
 
-        return if (request.url.host == baseHost || request.url.host.equals("localhost", ignoreCase = true)) {
-            val ip = backendDiscovery.resolveBackendIpSync() ?: BackendDiscovery.Companion.EMULATOR_HOST
+        return if (baseHost == BackendDiscovery.Companion.EMULATOR_HOST
+            || baseHost.equals("localhost", ignoreCase = true)
+            || baseHost.equals("127.0.0.1", ignoreCase = true)
+        ) {
+            val ip = backendDiscovery.resolveBackendIpSync()
+                ?: backendDiscovery.fallbackLocalGateway()
+                ?: BackendDiscovery.Companion.EMULATOR_HOST
+
             val newUrl = request.url.newBuilder()
                 .host(ip)
                 .port(BackendDiscovery.Companion.DEFAULT_PORT)
