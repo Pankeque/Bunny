@@ -64,7 +64,7 @@ class BackendDiscovery @Inject constructor(
             if (!cachedIp.isNullOrBlank()) {
                 return cachedIp
             }
-            nsdHelper.discoverBackend()?.host?.hostAddress
+            null
         } catch (e: Exception) {
             null
         }

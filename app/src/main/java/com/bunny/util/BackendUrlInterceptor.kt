@@ -1,5 +1,6 @@
 package com.bunny.util
 
+import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
 import java.io.IOException
@@ -19,10 +20,7 @@ class BackendUrlInterceptor @Inject constructor(
         return if (baseHost.equals("localhost", ignoreCase = true)
             || baseHost.equals("127.0.0.1", ignoreCase = true)
         ) {
-            val ip = backendDiscovery.resolveBackendIpSync()
-                ?: backendDiscovery.fallbackLocalGateway()
-                ?: "127.0.0.1"
-
+            val ip = runBlocking { backendDiscovery.resolveBackendIp() }
             val newUrl = request.url.newBuilder()
                 .host(ip)
                 .port(BackendDiscovery.Companion.DEFAULT_PORT)
@@ -34,3 +32,4 @@ class BackendUrlInterceptor @Inject constructor(
         }
     }
 }
+
