@@ -1,4 +1,4 @@
-2026-07-27T23:41:44.3287375Z ##[group]Run ./gradlew assembleDebug --refresh-dependencies
+2026-07-28T22:10:04.3227237Z ##[group]Run ./gradlew assembleDebug --refresh-dependencies
 ./gradlew assembleDebug --refresh-dependencies
 shell: /usr/bin/bash -e {0}
 env:
@@ -46,33 +46,19 @@ Starting a Gradle Daemon (subsequent builds will be faster)
 > Task :app:mergeDebugStartupProfile
 > Task :app:mergeDebugJniLibFolders
 > Task :app:mergeDebugNativeLibs NO-SOURCE
-> Task :app:stripDebugDebugSymbols NO-SOURCE
 > Task :app:mergeLibDexDebug
+> Task :app:stripDebugDebugSymbols NO-SOURCE
 > Task :app:validateSigningDebug
 > Task :app:writeDebugAppMetadata
 > Task :app:writeDebugSigningConfigVersions
 > Task :app:mergeExtDexDebug
 > Task :app:kspDebugKotlin
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/di/AppModule.kt:109:38 Unresolved reference 'Constants'.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:67:23 Suspend function 'suspend fun discoverBackend(timeoutMs: Long = ...): NsdServiceInfo?' should be called only from a coroutine or another suspend function.
 
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/di/AppModule.kt:149:62 No value passed for parameter 'backendDiscovery'.
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendUrlInterceptor.kt:23:37 Unresolved reference 'fallbackLocalGateway'.
 > Task :app:compileDebugKotlin FAILED
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:184:29 Unresolved reference 'Enumeration'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:186:31 Unresolved reference 'hasMoreElements'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:187:38 Unresolved reference 'nextElement'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:188:45 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:188:45 Not enough information to infer type argument for 'T'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:190:40 Unresolved reference 'hostAddress'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:191:34 Unresolved reference 'isLoopbackAddress'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:191:76 None of the following candidates is applicable:
-fun <T : Any, R : ClosedRange<T>, Iterable<T>> R.contains(element: T?): Boolean
-fun <T : Any, R : OpenEndRange<T>, Iterable<T>> R.contains(element: T?): Boolean
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:192:39 Unresolved reference 'substringBefore'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendUrlInterceptor.kt:17:51 Cannot access 'val EMULATOR_HOST: String': it is private in 'com/bunny/util/BackendDiscovery.Companion'.
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendUrlInterceptor.kt:20:92 Cannot access 'val EMULATOR_HOST: String': it is private in 'com/bunny/util/BackendDiscovery.Companion'.
-29 actionable tasks: 29 executed
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendUrlInterceptor.kt:23:50 Cannot access 'val DEFAULT_PORT: Int': it is private in 'com/bunny/util/BackendDiscovery.Companion'.
 
+29 actionable tasks: 29 executed
 FAILURE: Build failed with an exception.
 
 * What went wrong:
@@ -86,5 +72,5 @@ Execution failed for task ':app:compileDebugKotlin'.
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 1m 19s
+BUILD FAILED in 1m 18s
 Process completed with exit code 1.
