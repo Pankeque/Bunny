@@ -1,4 +1,4 @@
-2026-07-28T22:10:04.3227237Z ##[group]Run ./gradlew assembleDebug --refresh-dependencies
+﻿2026-07-28T22:28:07.3738804Z ##[group]Run ./gradlew assembleDebug --refresh-dependencies
 ./gradlew assembleDebug --refresh-dependencies
 shell: /usr/bin/bash -e {0}
 env:
@@ -27,13 +27,12 @@ Starting a Gradle Daemon (subsequent builds will be faster)
 > Task :app:mapDebugSourceSetPaths
 > Task :app:generateDebugResources
 > Task :app:packageDebugResources
-> Task :app:mergeDebugResources
 > Task :app:createDebugCompatibleScreenManifests
 > Task :app:extractDeepLinksDebug
 > Task :app:parseDebugLocalResources
+> Task :app:mergeDebugResources
 > Task :app:processDebugMainManifest
 > Task :app:processDebugManifest
-> Task :app:processDebugManifestForPackage
 > Task :app:javaPreCompileDebug
 > Task :app:mergeDebugShaders
 > Task :app:compileDebugShaders NO-SOURCE
@@ -41,24 +40,29 @@ Starting a Gradle Daemon (subsequent builds will be faster)
 > Task :app:mergeDebugAssets
 > Task :app:compressDebugAssets
 > Task :app:desugarDebugFileDependencies
-> Task :app:processDebugResources
+> Task :app:processDebugManifestForPackage
 > Task :app:checkDebugDuplicateClasses
 > Task :app:mergeDebugStartupProfile
 > Task :app:mergeDebugJniLibFolders
-> Task :app:mergeDebugNativeLibs NO-SOURCE
 > Task :app:mergeLibDexDebug
+> Task :app:mergeDebugNativeLibs NO-SOURCE
 > Task :app:stripDebugDebugSymbols NO-SOURCE
+> Task :app:processDebugResources
 > Task :app:validateSigningDebug
 > Task :app:writeDebugAppMetadata
 > Task :app:writeDebugSigningConfigVersions
-> Task :app:mergeExtDexDebug
+
+e: The daemon has terminated unexpectedly on startup attempt #1 with error code: 0. The daemon process output:
 > Task :app:kspDebugKotlin
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:67:23 Suspend function 'suspend fun discoverBackend(timeoutMs: Long = ...): NsdServiceInfo?' should be called only from a coroutine or another suspend function.
+    1. Kotlin compile daemon is ready
 
-e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendUrlInterceptor.kt:23:37 Unresolved reference 'fallbackLocalGateway'.
+> Task :app:mergeExtDexDebug
+
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:53:26 Suspend function 'suspend fun discoverBackend(timeoutMs: Long = ...): NsdServiceInfo?' should be called only from a coroutine or another suspend function.
 > Task :app:compileDebugKotlin FAILED
-
+e: file:///home/runner/work/Bunny/Bunny/app/src/main/java/com/bunny/util/BackendDiscovery.kt:60:26 Suspend function 'suspend fun discoverBackend(timeoutMs: Long = ...): NsdServiceInfo?' should be called only from a coroutine or another suspend function.
 29 actionable tasks: 29 executed
+
 FAILURE: Build failed with an exception.
 
 * What went wrong:
@@ -72,5 +76,5 @@ Execution failed for task ':app:compileDebugKotlin'.
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 1m 18s
+BUILD FAILED in 1m 4s
 Process completed with exit code 1.
