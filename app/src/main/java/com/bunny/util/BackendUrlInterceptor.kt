@@ -21,6 +21,9 @@ class BackendUrlInterceptor @Inject constructor(
             || baseHost.equals("127.0.0.1", ignoreCase = true)
         ) {
             val ip = runBlocking { backendDiscovery.resolveBackendIp() }
+            if (ip == null) {
+                return chain.proceed(request)
+            }
             val newUrl = request.url.newBuilder()
                 .host(ip)
                 .port(BackendDiscovery.Companion.DEFAULT_PORT)

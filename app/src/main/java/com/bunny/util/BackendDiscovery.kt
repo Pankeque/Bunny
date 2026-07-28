@@ -19,7 +19,6 @@ class BackendDiscovery @Inject constructor(
         const val KEY_BACKEND_IP = "backend_ip"
         const val KEY_LAST_SUCCESS = "last_success"
         const val DEFAULT_PORT = 8080
-        const val DEFAULT_FALLBACK_IP = "127.0.0.1"
     }
 
     private val prefs: SharedPreferences =
@@ -45,16 +44,21 @@ class BackendDiscovery @Inject constructor(
             return@withContext discoveredIp
         }
 
-        DEFAULT_FALLBACK_IP
+        return@withContext nsdHelper.discoverBackend()?.host?.hostAddress
+            ?: throw IllegalStateException("Backend not found via mDNS")
     }
 
     fun resolveBaseUrlSync(): String {
-        val ip = resolveBackendIpSync() ?: DEFAULT_FALLBACK_IP
+        val ip = resolveBackendIpSync()
+            ?: nsdHelper.discoverBackend()?.host?.hostAddress
+            ?: throw IllegalStateException("Backend not found via mDNS")
         return "http://$ip:$DEFAULT_PORT/"
     }
 
     fun resolveSocketUrlSync(): String {
-        val ip = resolveBackendIpSync() ?: DEFAULT_FALLBACK_IP
+        val ip = resolveBackendIpSync()
+            ?: nsdHelper.discoverBackend()?.host?.hostAddress
+            ?: throw IllegalStateException("Backend not found via mDNS")
         return "http://$ip:$DEFAULT_PORT"
     }
 
