@@ -15,12 +15,15 @@ class NsdHelper(private val context: Context) {
         private const val TAG = "NsdHelper"
         private const val SERVICE_TYPE = "_http._tcp."
         private const val SERVICE_NAME = "Bunny Backend"
+        private const val DEFAULT_DISCOVERY_TIMEOUT_MS = 3000L
     }
 
     private val nsdManager: NsdManager = context.getSystemService(Context.NSD_SERVICE) as NsdManager
 
-    suspend fun discoverBackend(timeoutMs: Long = 5000): NsdServiceInfo? = suspendCancellableCoroutine { cont ->
-        val listener = object : NsdManager.DiscoveryListener {
+    suspend fun discoverBackend(timeoutMs: Long = DEFAULT_DISCOVERY_TIMEOUT_MS): NsdServiceInfo? = suspendCancellableCoroutine { cont ->
+        var listener: NsdManager.DiscoveryListener? = null
+
+        listener = object : NsdManager.DiscoveryListener {
             override fun onDiscoveryStarted(regType: String) {
                 Log.d(TAG, "Discovery started")
             }
@@ -30,7 +33,7 @@ class NsdHelper(private val context: Context) {
                 if (service.serviceName.contains(SERVICE_NAME, ignoreCase = true)) {
                     nsdManager.resolveService(service, object : NsdManager.ResolveListener {
                         override fun onResolveFailed(service: NsdServiceInfo, errorCode: Int) {
-                            Log.e(TAG, "Resolve failed: $errorCode")
+                            Log.e(TAG, "Resolve failed for ${service.serviceName}: $errorCode")
                         }
 
                         override fun onServiceResolved(resolvedService: NsdServiceInfo) {
@@ -53,7 +56,9 @@ class NsdHelper(private val context: Context) {
 
             override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) {
                 Log.e(TAG, "Discovery start failed: $errorCode")
-                cont.resumeWithException(Exception("NSD discovery start failed: $errorCode"))
+                if (!cont.isCompleted) {
+                    cont.resumeWithException(Exception("NSD discovery start failed: $errorCode"))
+                }
             }
 
             override fun onStopDiscoveryFailed(serviceType: String, errorCode: Int) {
@@ -61,16 +66,32 @@ class NsdHelper(private val context: Context) {
             }
         }
 
-        nsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, listener)
+        try {
+            nsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, listener)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start discovery", e)
+            if (!cont.isCompleted) {
+                cont.resume(null)
+            }
+            return@suspendCancellableCoroutine
+        }
 
         cont.invokeOnCancellation {
-            nsdManager.stopServiceDiscovery(listener)
+            try {
+                nsdManager.stopServiceDiscovery(listener)
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to stop discovery", e)
+            }
         }
 
         ContextCompat.getMainExecutor(context).execute {
             Thread.sleep(timeoutMs)
             if (!cont.isCompleted) {
-                nsdManager.stopServiceDiscovery(listener)
+                try {
+                    nsdManager.stopServiceDiscovery(listener)
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to stop discovery after timeout", e)
+                }
                 cont.resume(null)
             }
         }
