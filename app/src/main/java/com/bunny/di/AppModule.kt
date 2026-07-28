@@ -26,6 +26,7 @@ import com.bunny.domain.repository.UserRepository
 import com.bunny.util.Constants
 import com.bunny.util.BackendDiscovery
 import com.bunny.util.BackendUrlInterceptor
+import com.bunny.util.NsdHelper
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -50,8 +51,14 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideBackendDiscovery(@ApplicationContext context: Context): BackendDiscovery {
-        return BackendDiscovery(context)
+    fun provideNsdHelper(@ApplicationContext context: Context): NsdHelper {
+        return NsdHelper(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBackendDiscovery(@ApplicationContext context: Context, nsdHelper: NsdHelper): BackendDiscovery {
+        return BackendDiscovery(context, nsdHelper)
     }
 
     @Provides

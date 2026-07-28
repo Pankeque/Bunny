@@ -18,7 +18,8 @@ import javax.inject.Singleton
 
 @Singleton
 class BackendDiscovery @Inject constructor(
-    private val context: Context
+    private val context: Context,
+    private val nsdHelper: NsdHelper
 ) {
 
     companion object {
@@ -52,9 +53,16 @@ class BackendDiscovery @Inject constructor(
     }
 
     suspend fun resolveBackendIp(): String = withContext(Dispatchers.IO) {
-                val cachedIp = readCachedIp()
+        val cachedIp = readCachedIp()
         if (!cachedIp.isNullOrBlank() && probeBackend(cachedIp)) {
             return@withContext cachedIp
+        }
+
+        val nsdService = nsdHelper.discoverBackend()
+        val discoveredIp = nsdService?.host?.hostAddress
+        if (!discoveredIp.isNullOrBlank() && probeBackend(discoveredIp)) {
+            cacheIp(discoveredIp)
+            return@withContext discoveredIp
         }
 
         val candidates = buildCandidateIps()
@@ -63,7 +71,7 @@ class BackendDiscovery @Inject constructor(
             return@withContext found
         }
 
-        cachedIp ?: COMMON_IPS.first()
+        candidates.firstOrNull { probeBackend(it) } ?: COMMON_IPS.first()
     }
 
     fun resolveBaseUrlSync(): String {
@@ -81,6 +89,11 @@ class BackendDiscovery @Inject constructor(
             val cachedIp = readCachedIp()
             if (!cachedIp.isNullOrBlank() && probeBackend(cachedIp)) {
                 return cachedIp
+            }
+            val nsdService = nsdHelper.discoverBackend()
+            val discoveredIp = nsdService?.host?.hostAddress
+            if (!discoveredIp.isNullOrBlank() && probeBackend(discoveredIp)) {
+                return discoveredIp
             }
             buildCandidateIps().firstOrNull { probeBackend(it) }
         } catch (e: Exception) {
@@ -215,4 +228,3 @@ class BackendDiscovery @Inject constructor(
         }
     }
 }
-
