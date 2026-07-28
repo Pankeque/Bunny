@@ -2,6 +2,7 @@ package com.bunny.util
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
@@ -19,6 +20,7 @@ class BackendDiscovery @Inject constructor(
         const val KEY_BACKEND_IP = "backend_ip"
         const val KEY_LAST_SUCCESS = "last_success"
         const val DEFAULT_PORT = 8080
+        private const val TAG = "BackendDiscovery"
     }
 
     private val prefs: SharedPreferences =
@@ -46,6 +48,7 @@ class BackendDiscovery @Inject constructor(
             return@withContext discoveredIp
         }
 
+        Log.w(TAG, "Backend not found via mDNS and no cached IP available")
         return@withContext null
     }
 
@@ -65,8 +68,10 @@ class BackendDiscovery @Inject constructor(
             if (!cachedIp.isNullOrBlank()) {
                 return cachedIp
             }
+            Log.w(TAG, "No cached backend IP available for sync resolution")
             null
         } catch (e: Exception) {
+            Log.e(TAG, "Error resolving backend IP sync", e)
             null
         }
     }
@@ -77,6 +82,7 @@ class BackendDiscovery @Inject constructor(
         if (!cached.isNullOrBlank() && lastSuccess > 0) {
             val ageMillis = System.currentTimeMillis() - lastSuccess
             if (ageMillis < TimeUnit.HOURS.toMillis(12)) return cached
+            Log.w(TAG, "Cached backend IP expired")
         }
         return null
     }
@@ -86,5 +92,6 @@ class BackendDiscovery @Inject constructor(
             .putString(KEY_BACKEND_IP, ip)
             .putLong(KEY_LAST_SUCCESS, System.currentTimeMillis())
             .apply()
+        Log.d(TAG, "Cached backend IP: $ip")
     }
 }

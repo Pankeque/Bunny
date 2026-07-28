@@ -87,6 +87,7 @@ class NsdHelper(private val context: Context) {
         ContextCompat.getMainExecutor(context).execute {
             Thread.sleep(timeoutMs)
             if (!cont.isCompleted) {
+                Log.w(TAG, "Backend discovery timed out after ${timeoutMs}ms")
                 try {
                     nsdManager.stopServiceDiscovery(listener)
                 } catch (e: Exception) {
