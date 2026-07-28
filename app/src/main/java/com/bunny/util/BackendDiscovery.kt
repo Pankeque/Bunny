@@ -25,11 +25,13 @@ class BackendDiscovery @Inject constructor(
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     suspend fun resolveBaseUrl(): String = withContext(Dispatchers.IO) {
-        "http://${resolveBackendIp()}:$DEFAULT_PORT/"
+        val ip = resolveBackendIp()
+        "http://$ip:$DEFAULT_PORT/"
     }
 
     suspend fun resolveSocketUrl(): String = withContext(Dispatchers.IO) {
-        "http://${resolveBackendIp()}:$DEFAULT_PORT"
+        val ip = resolveBackendIp()
+        "http://$ip:$DEFAULT_PORT"
     }
 
     suspend fun resolveBackendIp(): String = withContext(Dispatchers.IO) {
@@ -44,21 +46,16 @@ class BackendDiscovery @Inject constructor(
             return@withContext discoveredIp
         }
 
-        return@withContext nsdHelper.discoverBackend()?.host?.hostAddress
-            ?: throw IllegalStateException("Backend not found via mDNS")
+        throw IllegalStateException("Backend not found via mDNS")
     }
 
     fun resolveBaseUrlSync(): String {
-        val ip = resolveBackendIpSync()
-            ?: nsdHelper.discoverBackend()?.host?.hostAddress
-            ?: throw IllegalStateException("Backend not found via mDNS")
+        val ip = resolveBackendIpSync() ?: throw IllegalStateException("Backend not found via mDNS")
         return "http://$ip:$DEFAULT_PORT/"
     }
 
     fun resolveSocketUrlSync(): String {
-        val ip = resolveBackendIpSync()
-            ?: nsdHelper.discoverBackend()?.host?.hostAddress
-            ?: throw IllegalStateException("Backend not found via mDNS")
+        val ip = resolveBackendIpSync() ?: throw IllegalStateException("Backend not found via mDNS")
         return "http://$ip:$DEFAULT_PORT"
     }
 
