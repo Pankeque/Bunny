@@ -72,7 +72,7 @@ object AppModule {
     @Singleton
     fun provideBunnyApi(client: OkHttpClient, gson: Gson): BunnyApi {
         return Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:8080/")
+            .baseUrl("http://localhost:8080/")
             .client(client)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
