@@ -15,11 +15,8 @@ class BackendUrlInterceptor @Inject constructor(
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         var request = chain.request()
-        val baseHost = request.url.host
 
-        return if (baseHost.equals("localhost", ignoreCase = true)
-            || baseHost.equals("127.0.0.1", ignoreCase = true)
-        ) {
+        return if (request.url.host.equals("bunny.local", ignoreCase = true)) {
             val ip = runBlocking { backendDiscovery.resolveBackendIp() }
             if (ip == null) {
                 return chain.proceed(request)

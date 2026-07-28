@@ -26,8 +26,14 @@ class SocketService @Inject constructor(
     fun connect(accessToken: String) {
         if (webSocket != null) disconnect()
 
+        val socketUrl = backendDiscovery.resolveSocketUrlSync()
+        if (socketUrl.isBlank()) {
+            Log.w("Socket", "Backend not discovered, skipping WebSocket connect")
+            return
+        }
+
         val request = Request.Builder()
-            .url("${backendDiscovery.resolveSocketUrlSync()}/ws?token=$accessToken")
+            .url("$socketUrl/ws?token=$accessToken")
             .build()
 
         val listener = object : WebSocketListener() {
