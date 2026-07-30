@@ -1,6 +1,5 @@
 package com.bunny.util
 
-import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
 import java.io.IOException
@@ -14,15 +13,12 @@ class BackendUrlInterceptor @Inject constructor(
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
-        var request = chain.request()
+        val request = chain.request()
+        val cachedIp = backendDiscovery.resolveCachedIpSync()
 
-        return if (request.url.host.equals("bunny.local", ignoreCase = true)) {
-            val ip = runBlocking { backendDiscovery.resolveBackendIp() }
-            if (ip == null) {
-                return chain.proceed(request)
-            }
+        return if (!cachedIp.isNullOrBlank() && request.url.host.equals("bunny.local", ignoreCase = true)) {
             val newUrl = request.url.newBuilder()
-                .host(ip)
+                .host(cachedIp)
                 .port(BackendDiscovery.Companion.DEFAULT_PORT)
                 .build()
             val newRequest = request.newBuilder().url(newUrl).build()
@@ -32,4 +28,3 @@ class BackendUrlInterceptor @Inject constructor(
         }
     }
 }
-
