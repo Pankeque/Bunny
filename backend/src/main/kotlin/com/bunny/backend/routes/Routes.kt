@@ -17,6 +17,12 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
+private fun isMember(serverId: Int, userId: Int): Boolean = transaction {
+    ServerMemberEntity.find {
+        (ServerMembers.serverId eq serverId) and (ServerMembers.userId eq userId)
+    }.firstOrNull() != null
+}
+
 fun Route.authRoutes() {
     route("/api/auth") {
         post("/register") {
@@ -31,10 +37,12 @@ fun Route.authRoutes() {
                 val user = UserService.create(request.username, request.password)
                 val accessToken = generateToken(user.id.value)
                 val refreshToken = UUID.randomUUID().toString()
-                RefreshTokenEntity.new {
-                    this.userId = EntityID(user.id.value, Users)
-                    this.token = refreshToken
-                    this.expiresAt = java.time.Instant.now().plusSeconds(604800)
+                transaction {
+                    RefreshTokenEntity.new {
+                        this.userId = EntityID(user.id.value, Users)
+                        this.token = refreshToken
+                        this.expiresAt = java.time.Instant.now().plusSeconds(604800)
+                    }
                 }
                 call.respond(
                     AuthResponse(
@@ -54,10 +62,12 @@ fun Route.authRoutes() {
             if (user != null) {
                 val accessToken = generateToken(user.id.value)
                 val refreshToken = UUID.randomUUID().toString()
-                RefreshTokenEntity.new {
-                    this.userId = EntityID(user.id.value, Users)
-                    this.token = refreshToken
-                    this.expiresAt = java.time.Instant.now().plusSeconds(604800)
+                transaction {
+                    RefreshTokenEntity.new {
+                        this.userId = EntityID(user.id.value, Users)
+                        this.token = refreshToken
+                        this.expiresAt = java.time.Instant.now().plusSeconds(604800)
+                    }
                 }
                 call.respond(
                     AuthResponse(
@@ -73,12 +83,12 @@ fun Route.authRoutes() {
 
         post("/refresh") {
             val request = call.receive<RefreshTokenRequest>()
-            val stored = transaction { RefreshTokenEntity.find { RefreshTokens.token eq request.token }.firstOrNull() }
+            val stored = transaction { RefreshTokenEntity.find { RefreshTokens.token eq request.refreshToken }.firstOrNull() }
             if (stored != null) {
                 val user = UserService.findById(stored.userId.value)
                 if (user != null) {
                     val accessToken = generateToken(user.id.value)
-                    call.respond(AuthResponse(accessToken = accessToken, refreshToken = request.token, user = user.toResponse()))
+                    call.respond(AuthResponse(accessToken = accessToken, refreshToken = request.refreshToken, user = user.toResponse()))
                 } else {
                     call.respond(HttpStatusCode.Unauthorized, "Invalid token")
                 }
@@ -90,7 +100,6 @@ fun Route.authRoutes() {
 }
 
 fun Route.serverRoutes() {
-    authenticate {
         route("/api/servers") {
             get {
                 val user = call.principal<UserEntity>() ?: return@get call.respond(HttpStatusCode.Unauthorized)
@@ -206,7 +215,7 @@ fun Route.serverRoutes() {
             get("/{serverId}/roles") {
                 val serverId = call.parameters["serverId"]?.toIntOrNull() ?: return@get call.respond(HttpStatusCode.BadRequest)
                 val user = call.principal<UserEntity>() ?: return@get call.respond(HttpStatusCode.Unauthorized)
-                val isMember = ServerMemberEntity.find { (ServerMembers.serverId eq serverId) and (ServerMembers.userId eq user.id.value) }.firstOrNull() != null
+                val isMember = isMember(serverId, user.id.value)
                 if (!isMember) {
                     return@get call.respond(HttpStatusCode.Forbidden)
                 }
@@ -225,6 +234,8 @@ fun Route.serverRoutes() {
                 call.respond(HttpStatusCode.Created, role.toResponse())
             }
 
+        }
+        route("/api") {
             delete("/roles/{roleId}") {
                 val roleId = call.parameters["roleId"]?.toIntOrNull() ?: return@delete call.respond(HttpStatusCode.BadRequest)
                 val user = call.principal<UserEntity>() ?: return@delete call.respond(HttpStatusCode.Unauthorized)
@@ -242,17 +253,15 @@ fun Route.serverRoutes() {
                 }
             }
         }
-    }
 }
 
 fun Route.channelRoutes() {
-    authenticate {
         route("/api") {
             route("/servers/{serverId}") {
                 get("/channels") {
                     val serverId = call.parameters["serverId"]?.toIntOrNull() ?: return@get call.respond(HttpStatusCode.BadRequest)
                     val user = call.principal<UserEntity>() ?: return@get call.respond(HttpStatusCode.Unauthorized)
-                    val isMember = ServerMemberEntity.find { (ServerMembers.serverId eq serverId) and (ServerMembers.userId eq user.id.value) }.firstOrNull() != null
+                    val isMember = isMember(serverId, user.id.value)
                     if (!isMember) {
                         return@get call.respond(HttpStatusCode.Forbidden)
                     }
@@ -311,11 +320,9 @@ fun Route.channelRoutes() {
                 }
             }
         }
-    }
 }
 
 fun Route.messageRoutes() {
-    authenticate {
         route("/api") {
             route("/channels/{channelId}") {
                 get("/messages") {
@@ -325,7 +332,7 @@ fun Route.messageRoutes() {
                     if (channel == null) {
                         return@get call.respond(HttpStatusCode.NotFound)
                     }
-                    val isMember = ServerMemberEntity.find { (ServerMembers.serverId eq channel.serverId.value) and (ServerMembers.userId eq user.id.value) }.firstOrNull() != null
+                    val isMember = isMember(channel.serverId.value, user.id.value)
                     if (!isMember) {
                         return@get call.respond(HttpStatusCode.Forbidden)
                     }
@@ -334,31 +341,30 @@ fun Route.messageRoutes() {
                     val messages = MessageService.findByChannel(channelId, limit, (page - 1) * limit).map { it.toResponse() }
                     call.respond(messages)
                 }
-            }
 
-            post("/messages") {
-                val user = call.principal<UserEntity>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
-                val request = call.receive<SendMessageRequest>()
-                if (request.content.isBlank()) {
-                    return@post call.respond(HttpStatusCode.BadRequest, "Message cannot be empty")
+                post("/messages") {
+                    val channelId = call.parameters["channelId"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
+                    val user = call.principal<UserEntity>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
+                    val request = call.receive<SendMessageRequest>()
+                    if (request.content.isBlank()) {
+                        return@post call.respond(HttpStatusCode.BadRequest, "Message cannot be empty")
+                    }
+                    val channel = ChannelService.findById(channelId)
+                    if (channel == null) {
+                        return@post call.respond(HttpStatusCode.NotFound, "Channel not found")
+                    }
+                    val isMember = isMember(channel.serverId.value, user.id.value)
+                    if (!isMember) {
+                        return@post call.respond(HttpStatusCode.Forbidden)
+                    }
+                    val message = MessageService.create(channelId, user.id.value, request.content)
+                    call.respond(HttpStatusCode.Created, (message to user).toResponse())
                 }
-                val channel = ChannelService.findById(request.channelId)
-                if (channel == null) {
-                    return@post call.respond(HttpStatusCode.NotFound, "Channel not found")
-                }
-                val isMember = ServerMemberEntity.find { (ServerMembers.serverId eq channel.serverId.value) and (ServerMembers.userId eq user.id.value) }.firstOrNull() != null
-                if (!isMember) {
-                    return@post call.respond(HttpStatusCode.Forbidden)
-                }
-                val message = MessageService.create(request.channelId, user.id.value, request.content)
-                call.respond(HttpStatusCode.Created, (message to user).toResponse())
             }
         }
-    }
 }
 
 fun Route.userRoutes() {
-    authenticate {
         route("/api/users") {
             put("/me") {
                 val user = call.principal<UserEntity>() ?: return@put call.respond(HttpStatusCode.Unauthorized)
@@ -371,5 +377,4 @@ fun Route.userRoutes() {
                 }
             }
         }
-    }
 }

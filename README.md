@@ -103,17 +103,28 @@ The app adapts seamlessly between portrait and landscape orientations:
 |--------|----------|-------------|
 | POST | `/api/auth/register` | Register user |
 | POST | `/api/auth/login` | Login JWT |
-| POST | `/api/auth/refresh` | Refresh token |
+| POST | `/api/auth/refresh` | Refresh token (`refresh_token` body) |
 | GET | `/api/servers` | List servers |
 | POST | `/api/servers` | Create server |
+| PUT | `/api/servers/:id` | Update server |
 | DELETE | `/api/servers/:id` | Delete server |
 | POST | `/api/servers/join` | Join via invite |
 | POST | `/api/servers/:id/leave` | Leave server |
+| POST | `/api/servers/:id/icon` | Update server icon |
+| POST | `/api/servers/:id/regenerate-invite` | Regenerate invite code |
 | GET | `/api/servers/:id/channels` | List channels |
 | POST | `/api/servers/:id/channels` | Create channel |
+| GET | `/api/servers/:serverId/roles` | List roles |
+| POST | `/api/servers/:serverId/roles` | Create role |
+| DELETE | `/api/roles/:roleId` | Delete role |
+| GET | `/api/channels/:id` | Get channel |
+| PUT | `/api/channels/:id` | Update channel |
 | DELETE | `/api/channels/:id` | Delete channel |
-| GET | `/api/channels/:id/messages` | Get messages |
-| POST | `/api/messages` | Send message |
+| GET | `/api/channels/:channelId/messages` | Get messages |
+| POST | `/api/channels/:channelId/messages` | Send message (`content` body) |
+| PUT | `/api/users/me` | Update profile |
+
+All request/response bodies use snake_case JSON (e.g. `channel_id`, `access_token`).
 
 ## WebSocket Gateway (Discord-style protocol)
 

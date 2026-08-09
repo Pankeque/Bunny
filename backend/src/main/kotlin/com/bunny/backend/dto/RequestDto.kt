@@ -39,13 +39,12 @@ data class CreateRoleRequest(
 
 @Serializable
 data class SendMessageRequest(
-    val channelId: Int,
     val content: String
 )
 
 @Serializable
 data class RefreshTokenRequest(
-    val token: String
+    val refreshToken: String
 )
 
 @Serializable

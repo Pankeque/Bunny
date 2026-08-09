@@ -33,6 +33,7 @@ object DatabaseFactory {
                         com.bunny.backend.model.Users,
                         com.bunny.backend.model.Servers,
                         com.bunny.backend.model.ServerMembers,
+                        com.bunny.backend.model.Roles,
                         com.bunny.backend.model.Channels,
                         com.bunny.backend.model.Messages,
                         com.bunny.backend.model.RefreshTokens
