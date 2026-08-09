@@ -17,7 +17,7 @@ services:
   bunny-backend:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: Dockerfile
     container_name: bunny-backend
     ports:
       - "8080:8080"
