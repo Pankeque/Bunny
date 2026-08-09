@@ -27,8 +27,6 @@ fun LoginScreen(navController: NavController, modifier: Modifier = Modifier) {
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    val discoveryUiState by viewModel.discoveryUiState.collectAsState()
-
     LaunchedEffect(Unit) {
         val prefs = navController.context.getSharedPreferences(Constants.PREFS_NAME, android.content.Context.MODE_PRIVATE)
         val token = prefs.getString(Constants.KEY_ACCESS_TOKEN, null)
@@ -50,11 +48,6 @@ fun LoginScreen(navController: NavController, modifier: Modifier = Modifier) {
             ) {
                 Text("Bunny", style = MaterialTheme.typography.headlineMedium)
                 Spacer(modifier = Modifier.height(40.dp))
-
-                DiscoveryStatusBanner(discoveryUiState) {
-                    viewModel.retryDiscovery()
-                }
-                Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedTextField(
                     value = username,
@@ -111,34 +104,6 @@ fun LoginScreen(navController: NavController, modifier: Modifier = Modifier) {
                     ErrorDialog(message = msg, onDismiss = { errorMessage = null })
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun DiscoveryStatusBanner(state: DiscoveryUiState, onRetry: () -> Unit) {
-    when (state) {
-        is DiscoveryUiState.Discovering -> {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                CircularProgressIndicator(modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Discovering backend...", style = MaterialTheme.typography.bodySmall)
-            }
-        }
-        is DiscoveryUiState.Found -> {
-            Text("Backend connected", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
-        }
-        is DiscoveryUiState.NotFound -> {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(state.message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
-                Spacer(modifier = Modifier.height(4.dp))
-                TextButton(onClick = onRetry) {
-                    Text("Retry Discovery")
-                }
-            }
-        }
-        is DiscoveryUiState.Unknown -> {
-            Text("Initializing...", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

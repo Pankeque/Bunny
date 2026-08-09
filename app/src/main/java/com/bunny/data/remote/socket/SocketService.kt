@@ -3,7 +3,6 @@ package com.bunny.data.remote.socket
 import android.util.Log
 import com.bunny.domain.model.Message
 import com.bunny.util.Constants
-import com.bunny.util.BackendDiscovery
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import okhttp3.*
@@ -12,9 +11,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SocketService @Inject constructor(
-    private val backendDiscovery: BackendDiscovery
-) {
+class SocketService @Inject constructor() {
     private var webSocket: WebSocket? = null
     private val client = OkHttpClient.Builder()
         .pingInterval(15, java.util.concurrent.TimeUnit.SECONDS)
@@ -26,14 +23,8 @@ class SocketService @Inject constructor(
     fun connect(accessToken: String) {
         if (webSocket != null) disconnect()
 
-        val socketUrl = backendDiscovery.resolveSocketUrlSync()
-        if (socketUrl.isNullOrBlank()) {
-            Log.w("Socket", "Backend not discovered, skipping WebSocket connect")
-            return
-        }
-
         val request = Request.Builder()
-            .url("$socketUrl/ws?token=$accessToken")
+            .url("${Constants.SOCKET_URL}/ws?token=$accessToken")
             .build()
 
         val listener = object : WebSocketListener() {

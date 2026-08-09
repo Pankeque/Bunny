@@ -7,7 +7,7 @@ object Constants {
     const val KEY_USER_ID = "user_id"
     const val KEY_USERNAME = "username"
     const val KEY_THEME = "theme"
-    const val DEFAULT_PORT = 8080
 
-    const val DEFAULT_BACKEND_PATH_PREFIX = ""
+    const val BASE_URL = "https://api.bunny.app/"
+    const val SOCKET_URL = "wss://gateway.bunny.app"
 }

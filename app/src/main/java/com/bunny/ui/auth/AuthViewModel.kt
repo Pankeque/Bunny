@@ -6,13 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.bunny.data.remote.socket.SocketService
 import com.bunny.domain.repository.AuthRepository
 import com.bunny.domain.repository.UserRepository
-import com.bunny.util.BackendDiscovery
-import com.bunny.util.Constants
-import com.bunny.util.DiscoveryState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,52 +19,15 @@ sealed class AuthState {
     data class Error(val message: String) : AuthState()
 }
 
-sealed class DiscoveryUiState {
-    object Unknown : DiscoveryUiState()
-    object Discovering : DiscoveryUiState()
-    object Found : DiscoveryUiState()
-    data class NotFound(val message: String = "Backend not found on local network") : DiscoveryUiState()
-}
-
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
-    private val socketService: SocketService,
-    private val backendDiscovery: BackendDiscovery
+    private val socketService: SocketService
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState
-
-    private val _discoveryUiState = MutableStateFlow<DiscoveryUiState>(DiscoveryUiState.Unknown)
-    val discoveryUiState: StateFlow<DiscoveryUiState> = _discoveryUiState
-
-    init {
-        startBackendDiscovery()
-    }
-
-    private fun startBackendDiscovery() {
-        viewModelScope.launch {
-            backendDiscovery.discoveryState.collectLatest { state ->
-                _discoveryUiState.value = when (state) {
-                    is DiscoveryState.Unknown -> DiscoveryUiState.Unknown
-                    is DiscoveryState.Discovering -> DiscoveryUiState.Discovering
-                    is DiscoveryState.Found -> DiscoveryUiState.Found
-                    is DiscoveryState.NotFound -> DiscoveryUiState.NotFound()
-                }
-            }
-        }
-        viewModelScope.launch {
-            backendDiscovery.warmupDiscovery()
-        }
-    }
-
-    fun retryDiscovery() {
-        viewModelScope.launch {
-            backendDiscovery.warmupDiscovery()
-        }
-    }
 
     fun login(username: String, password: String, onResult: (Result<String>) -> Unit) {
         viewModelScope.launch {
