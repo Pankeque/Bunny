@@ -167,6 +167,19 @@ Like Discord, the app connects to fixed, stable endpoints defined at build time 
 Users never configure IP addresses. The operator deploys the backend and, if needed,
 changes the two constants before building the APK.
 
+### Deploying the backend on Render
+
+1. Create a web service from this repository (root `Dockerfile`).
+2. Create a **managed PostgreSQL** instance on Render.
+3. Attach the database to the web service (Render then auto-injects
+   `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` and `DATABASE_URL`).
+4. In the web service **Environment** tab, add:
+   - `DATABASE_URL` = the Internal Database URL from the Postgres instance
+   - `DATABASE_USER` / `DATABASE_PASSWORD` = Postgres credentials
+   - `JWT_SECRET` = a long random string
+5. Redeploy. The backend reads the database config from these env vars and
+   auto-creates the schema on first boot.
+
 ## Notes
 - Mobile-only (Android)
 - Dark theme as default
