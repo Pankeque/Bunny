@@ -4,9 +4,9 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
+import io.ktor.server.auth.Principal
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.TextColumnType
 import org.jetbrains.exposed.sql.javatime.timestamp
 import java.time.Instant
 
@@ -18,12 +18,10 @@ object Users : IntIdTable("users") {
     val createdAt = timestamp("created_at").default(Instant.now())
 }
 
-object RefreshTokens : Table("refresh_tokens") {
-    val id = integer("id").autoIncrement()
+object RefreshTokens : IntIdTable("refresh_tokens") {
     val userId = reference("user_id", Users.id, onDelete = ReferenceOption.CASCADE)
     val token = varchar("token", 255).uniqueIndex()
     val expiresAt = timestamp("expires_at")
-    override val primaryKey = PrimaryKey(id)
 }
 
 object Servers : IntIdTable("servers") {
@@ -65,7 +63,7 @@ object Messages : IntIdTable("messages") {
     val createdAt = timestamp("created_at").default(Instant.now())
 }
 
-class UserEntity(id: EntityID) : IntEntity(id) {
+class UserEntity(id: EntityID<Int>) : IntEntity(id), Principal {
     companion object : IntEntityClass<UserEntity>(Users)
     var passwordHash by Users.passwordHash
     var username by Users.username
@@ -74,7 +72,14 @@ class UserEntity(id: EntityID) : IntEntity(id) {
     var createdAt by Users.createdAt
 }
 
-class ServerEntity(id: EntityID) : IntEntity(id) {
+class RefreshTokenEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<RefreshTokenEntity>(RefreshTokens)
+    var userId by RefreshTokens.userId
+    var token by RefreshTokens.token
+    var expiresAt by RefreshTokens.expiresAt
+}
+
+class ServerEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<ServerEntity>(Servers)
     var name by Servers.name
     var iconUrl by Servers.iconUrl
@@ -84,7 +89,7 @@ class ServerEntity(id: EntityID) : IntEntity(id) {
     var createdAt by Servers.createdAt
 }
 
-class ServerMemberEntity(id: EntityID) : IntEntity(id) {
+class ServerMemberEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<ServerMemberEntity>(ServerMembers)
     var serverId by ServerMembers.serverId
     var userId by ServerMembers.userId
@@ -92,7 +97,7 @@ class ServerMemberEntity(id: EntityID) : IntEntity(id) {
     var joinedAt by ServerMembers.joinedAt
 }
 
-class RoleEntity(id: EntityID) : IntEntity(id) {
+class RoleEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<RoleEntity>(Roles)
     var serverId by Roles.serverId
     var name by Roles.name
@@ -100,7 +105,7 @@ class RoleEntity(id: EntityID) : IntEntity(id) {
     var createdAt by Roles.createdAt
 }
 
-class ChannelEntity(id: EntityID) : IntEntity(id) {
+class ChannelEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<ChannelEntity>(Channels)
     var serverId by Channels.serverId
     var name by Channels.name
@@ -108,7 +113,7 @@ class ChannelEntity(id: EntityID) : IntEntity(id) {
     var createdAt by Channels.createdAt
 }
 
-class MessageEntity(id: EntityID) : IntEntity(id) {
+class MessageEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<MessageEntity>(Messages)
     var channelId by Messages.channelId
     var userId by Messages.userId

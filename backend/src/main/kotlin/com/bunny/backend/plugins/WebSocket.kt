@@ -11,7 +11,11 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.time.Duration.Companion.seconds
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.concurrent.ConcurrentHashMap
 
@@ -124,8 +128,8 @@ object WebSocketConnectionManager {
 
 fun Application.configureWebSockets() {
     install(WebSockets) {
-        pingPeriod = 15_000
-        timeout = 15_000
+        pingPeriod = java.time.Duration.ofSeconds(15)
+        timeout = java.time.Duration.ofSeconds(15)
         maxFrameSize = Long.MAX_VALUE
         masking = false
     }

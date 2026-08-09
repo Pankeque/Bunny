@@ -50,12 +50,13 @@ object ServerService {
         .joinToString("")
 
     @Deprecated("Use role scoped queries instead.", replaceWith = ReplaceWith("findByUser(userId)"))
-    fun findAll(): List<com.bunny.backend.model.ServerEntity> = transaction {
+    fun findAll(): List<ServerEntity> = transaction {
         ServerEntity.all().toList()
     }
 
-    fun findByUser(userId: Int): List<com.bunny.backend.model.ServerEntity> = transaction {
-        ServerMemberEntity.find { ServerMembers.userId eq userId }.map { it.serverId }
+    fun findByUser(userId: Int): List<ServerEntity> = transaction {
+        ServerMemberEntity.find { ServerMembers.userId eq userId }
+            .map { it.serverId }
             .distinct()
             .mapNotNull { ServerEntity.findById(it.value) }
     }
@@ -65,12 +66,15 @@ object ServerService {
     }
 
     fun findByInviteCode(code: String): ServerEntity? = transaction {
-        ServerEntity.find { (Servers.inviteCode eq code) and (Servers.expiresAt.isNull() or (Servers.expiresAt greater Instant.now())) }.firstOrNull()
+        ServerEntity.find {
+            (Servers.inviteCode eq code) and
+                (Servers.expiresAt.isNull() or (Servers.expiresAt greater Instant.now()))
+        }.firstOrNull()
     }
 
     fun create(name: String, ownerId: Int): ServerEntity = transaction {
         val code = generateInviteCode()
-        ServerEntity.new {
+        val server = ServerEntity.new {
             this.name = name
             this.iconUrl = null
             this.ownerId = EntityID(ownerId, Users)
@@ -78,15 +82,16 @@ object ServerService {
             this.expiresAt = Instant.now().plusSeconds(60 * 60 * 24 * 7)
         }
         val defaultRole = RoleEntity.new {
-            this.serverId = this@ServerEntity.id
+            this.serverId = server.id
             this.name = "member"
             this.color = "#99AAB5"
         }
         ServerMemberEntity.new {
-            this.serverId = this@ServerEntity.id
+            this.serverId = server.id
             this.userId = EntityID(ownerId, Users)
-            this.roleId = defaultRole.id
+            this.roleId = defaultRole.id.value
         }
+        server
     }
 
     fun isOwner(serverId: Int, userId: Int): Boolean = transaction {
@@ -111,9 +116,9 @@ object ServerService {
     fun delete(serverId: Int): Boolean = transaction {
         val server = findById(serverId)
         if (server != null) {
-            ServerMembers.deleteWhere { ServerMembers.serverId eq serverId }
-            Channels.deleteWhere { Channels.serverId eq serverId }
-            Roles.deleteWhere { Roles.serverId eq serverId }
+            ServerMembers.deleteWhere { it.run { ServerMembers.serverId eq serverId } }
+            Channels.deleteWhere { it.run { Channels.serverId eq serverId } }
+            Roles.deleteWhere { it.run { Roles.serverId eq serverId } }
             server.delete()
             true
         } else false
@@ -130,7 +135,7 @@ object ServerService {
             ServerMemberEntity.new {
                 this.serverId = EntityID(serverId, Servers)
                 this.userId = EntityID(userId, Users)
-                this.roleId = defaultRole.id
+                this.roleId = defaultRole.id.value
             }
             true
         } catch (e: org.jetbrains.exposed.exceptions.ExposedSQLException) {
@@ -143,20 +148,14 @@ object ServerService {
         if (server != null && server.ownerId.value == userId) {
             return@transaction false
         }
-        val member = ServerMemberEntity.find { (ServerMembers.serverId eq serverId) and (ServerMembers.userId eq userId) }.firstOrNull()
+        val member = ServerMemberEntity.find {
+            (ServerMembers.serverId eq serverId) and (ServerMembers.userId eq userId)
+        }.firstOrNull()
         member?.let {
             it.delete()
             true
         } ?: false
     }
-}
-
-class ServerMemberEntity(id: EntityID) : IntEntity(id) {
-    companion object : IntEntityClass<ServerMemberEntity>(ServerMembers)
-    var serverId by ServerMembers.serverId
-    var userId by ServerMembers.userId
-    var roleId by ServerMembers.roleId
-    var joinedAt by ServerMembers.joinedAt
 }
 
 object RoleService {
@@ -181,7 +180,7 @@ object RoleService {
         if (role != null && role.name != "member") {
             val defaultRole = RoleEntity.find { (Roles.serverId eq role.serverId) and (Roles.name eq "member") }.firstOrNull()
             ServerMembers.update({ ServerMembers.roleId eq roleId }) {
-                it[roleId] = defaultRole?.id
+                it[ServerMembers.roleId] = defaultRole?.id?.value
             }
             role.delete()
             true
@@ -192,7 +191,7 @@ object RoleService {
 object ChannelService {
     fun findByServer(serverId: Int): List<ChannelEntity> = transaction {
         ChannelEntity.find { Channels.serverId eq serverId }
-            .orderBy(Channels.createdAt, SortOrder.ASC)
+            .orderBy(Channels.createdAt to SortOrder.ASC)
             .toList()
     }
 
@@ -218,7 +217,7 @@ object ChannelService {
     fun delete(channelId: Int): Boolean = transaction {
         val channel = findById(channelId)
         if (channel != null) {
-            Messages.deleteWhere { Messages.channelId eq channelId }
+            Messages.deleteWhere { it.run { Messages.channelId eq channelId } }
             channel.delete()
             true
         } else false
@@ -229,8 +228,8 @@ object MessageService {
     fun findByChannel(channelId: Int, limit: Int = 50, offset: Int = 0): List<Pair<MessageEntity, UserEntity>> = transaction {
         (Messages innerJoin Users)
             .selectAll()
-            .where { Messages.channelId eq channelId }
-            .orderBy(Messages.createdAt, SortOrder.DESC)
+            .andWhere { Messages.channelId eq channelId }
+            .orderBy(Messages.createdAt to SortOrder.DESC)
             .limit(limit, offset.toLong())
             .map {
                 val msg = MessageEntity.wrapRow(it)

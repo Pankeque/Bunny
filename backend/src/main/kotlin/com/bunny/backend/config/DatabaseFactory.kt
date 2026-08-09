@@ -10,7 +10,7 @@ object DatabaseFactory {
     fun init() {
         val config = HikariConfig().apply {
             jdbcUrl = System.getenv("DATABASE_URL") ?: "jdbc:postgresql://localhost:5432/bunny"
-            driver = "org.postgresql.Driver"
+            driverClassName = "org.postgresql.Driver"
             username = System.getenv("DATABASE_USER") ?: "postgres"
             password = System.getenv("DATABASE_PASSWORD") ?: "postgres"
             maximumPoolSize = 10

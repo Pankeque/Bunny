@@ -3,14 +3,17 @@ package com.bunny.backend.routes
 import com.bunny.backend.dto.*
 import com.bunny.backend.mapper.toResponse
 import com.bunny.backend.model.*
+import com.bunny.backend.plugins.generateToken
 import com.bunny.backend.service.*
 import com.bunny.backend.util.PasswordUtils
+import org.jetbrains.exposed.dao.id.EntityID
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
@@ -229,7 +232,7 @@ fun Route.serverRoutes() {
                 if (role == null) {
                     return@delete call.respond(HttpStatusCode.NotFound)
                 }
-                if (!ServerService.isOwner(role.serverId, user.id.value)) {
+                if (!ServerService.isOwner(role.serverId.value, user.id.value)) {
                     return@delete call.respond(HttpStatusCode.Forbidden)
                 }
                 if (RoleService.delete(roleId)) {
@@ -348,7 +351,7 @@ fun Route.messageRoutes() {
                     return@post call.respond(HttpStatusCode.Forbidden)
                 }
                 val message = MessageService.create(request.channelId, user.id.value, request.content)
-                call.respond(HttpStatusCode.Created, message.toResponse())
+                call.respond(HttpStatusCode.Created, (message to user).toResponse())
             }
         }
     }

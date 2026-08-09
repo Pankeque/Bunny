@@ -17,11 +17,14 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation:2.3.7")
     implementation("io.ktor:ktor-server-cors:2.3.7")
     implementation("io.ktor:ktor-server-auth:2.3.7")
+    implementation("io.ktor:ktor-server-auth-jwt:2.3.7")
     implementation("io.ktor:ktor-server-websockets:2.3.7")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
     implementation("io.ktor:ktor-server-rate-limit:2.3.7")
     implementation("io.ktor:ktor-server-status-pages:2.3.7")
     implementation("io.ktor:ktor-server-metrics-micrometer:2.3.7")
+
+    implementation("com.zaxxer:HikariCP:5.1.0")
 
     implementation("io.ktor:ktor-client-core:2.3.7")
     implementation("io.ktor:ktor-client-cio:2.3.7")

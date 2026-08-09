@@ -2,6 +2,7 @@ package com.bunny.backend
 
 import com.bunny.backend.config.DatabaseFactory
 import com.bunny.backend.plugins.*
+import com.bunny.backend.routes.configureRouting
 import io.ktor.server.application.*
 import io.ktor.server.netty.*
 
