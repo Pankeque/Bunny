@@ -39,7 +39,7 @@ Make sure you have JDK 17+ installed.
 ## Structure
 
 ### Android App (`Bunny/app/`)
-- `data/` - Room DB, Retrofit API, Socket.IO client, repositories, DTOs
+- `data/` - Room DB, Retrofit API, WebSocket gateway client, repositories, DTOs
 - `domain/` - Domain models and repository interfaces
 - `ui/` - Compose screens (Login, Register, Servers, Channels, Chat, Profile)
 - `di/` - Hilt DI module
@@ -62,7 +62,7 @@ Make sure you have JDK 17+ installed.
 1. **Login/Register** - JWT-based authentication
 2. **Server List** - Create, join, leave servers
 3. **Channel List** - Create and delete text channels
-4. **Chat** - Real-time messaging with Socket.IO
+4. **Chat** - Real-time messaging with OkHttp WebSocket gateway
 5. **Profile** - User info and logout
 6. **Profile Edit** - Edit username, avatar, theme
 7. **Server Settings** - Rename server, update icon, manage roles, delete
@@ -115,11 +115,26 @@ The app adapts seamlessly between portrait and landscape orientations:
 | GET | `/api/channels/:id/messages` | Get messages |
 | POST | `/api/messages` | Send message |
 
-## WebSocket Events
-- `join_channel(channelId)`
-- `leave_channel(channelId)`
-- `send_message(channelId, content)`
-- `message:receive` (server -> client)
+## WebSocket Gateway (Discord-style protocol)
+
+The client talks to the gateway with a JSON envelope `{ "op": ..., "type": ..., "data": ... }`.
+
+Client -> Server ops:
+- `join_channel(channelId)` - subscribe to a channel
+- `leave_channel(channelId)` - unsubscribe from a channel
+- `send_message(channelId, content, nonce)` - send a message (nonce dedupes retransmissions)
+- `heartbeat` - keepalive, expects `heartbeat_ack`
+
+Server -> Client:
+- `ready(userId)` - handshake complete
+- `hello(heartbeatInterval)` - start heartbeat cadence
+- `heartbeat_ack` - liveness confirmation
+- `event:message_received(messageId, channelId, userId, content, nonce, sequence, timestamp)` - new message (echoed to sender too)
+- `event:presence_update(channelId, userId, online)` / `presence_update(channelId, users)` - presence snapshot & changes
+- `event:error(code, error)` - gateway error (e.g. `forbidden`, `invalid_message`)
+
+The app auto-reconnects with exponential backoff, rejoins channels, replays queued sends,
+and resumes the heartbeat on the new connection (like Discord's gateway resume).
 
 ## Database Schema
 - `users` - username, password_hash, avatar
@@ -139,8 +154,18 @@ docker-compose up
 
 ### Android App
 1. Open `Bunny` folder in Android Studio
-2. Update `Constants.BASE_URL` in `util/Constants.kt` to match backend IP
-3. Run on Android emulator or device (API 26+)
+2. Run on Android emulator or device (API 26+)
+
+## Backend Connectivity
+
+Like Discord, the app connects to fixed, stable endpoints defined at build time in
+`app/src/main/java/com/bunny/util/Constants.kt`:
+
+- `BASE_URL` — REST API (`https://bunny-backend-lq2l.onrender.com/`)
+- `SOCKET_URL` — realtime WebSocket gateway (`wss://bunny-backend-lq2l.onrender.com`)
+
+Users never configure IP addresses. The operator deploys the backend and, if needed,
+changes the two constants before building the APK.
 
 ## Notes
 - Mobile-only (Android)

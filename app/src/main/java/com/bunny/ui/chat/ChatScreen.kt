@@ -19,9 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.bunny.data.remote.socket.ConnectionState
 import com.bunny.domain.model.Message
 import com.bunny.ui.theme.BunnyTheme
-import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,12 +33,12 @@ fun ChatScreen(
 ) {
     val viewModel: ChatViewModel = hiltViewModel()
     val messages by viewModel.messages.collectAsStateWithLifecycle()
+    val onlineUserIds by viewModel.onlineUserIds.collectAsStateWithLifecycle()
+    val connectionState by viewModel.connectionState.collectAsStateWithLifecycle()
     var inputText by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
     var channelName by remember { mutableStateOf("Channel $channelId") }
     var currentUser by remember { mutableStateOf<Int?>(null) }
     val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(channelId) {
         viewModel.currentUser { user ->
@@ -58,7 +58,19 @@ fun ChatScreen(
     BunnyTheme {
         Surface(modifier = modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize()) {
-                TopAppBar(title = { Text(channelName) }, navigationIcon = {
+                TopAppBar(title = {
+                    Column {
+                        Text(channelName)
+                        val onlineCount = onlineUserIds.count { it != currentUser }
+                        if (onlineCount > 0) {
+                            Text(
+                                text = "$onlineCount online",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }, navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
@@ -81,6 +93,25 @@ fun ChatScreen(
                     }
                 }
 
+                if (connectionState is ConnectionState.Reconnecting ||
+                    connectionState is ConnectionState.Connecting
+                ) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.tertiaryContainer,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = if (connectionState is ConnectionState.Reconnecting) {
+                                "Reconnecting…"
+                            } else {
+                                "Connecting…"
+                            },
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                }
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -99,11 +130,8 @@ fun ChatScreen(
                     FloatingActionButton(
                         onClick = {
                             if (inputText.isNotBlank()) {
-                                viewModel.sendMessage(channelId, inputText) { result ->
-                                    result.onSuccess {
-                                        inputText = ""
-                                    }
-                                }
+                                viewModel.sendMessage(channelId, inputText)
+                                inputText = ""
                             }
                         },
                         containerColor = MaterialTheme.colorScheme.primary,

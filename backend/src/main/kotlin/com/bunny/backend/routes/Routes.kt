@@ -317,6 +317,15 @@ fun Route.messageRoutes() {
             route("/channels/{channelId}") {
                 get("/messages") {
                     val channelId = call.parameters["channelId"]?.toIntOrNull() ?: return@get call.respond(HttpStatusCode.BadRequest)
+                    val user = call.principal<UserEntity>() ?: return@get call.respond(HttpStatusCode.Unauthorized)
+                    val channel = ChannelService.findById(channelId)
+                    if (channel == null) {
+                        return@get call.respond(HttpStatusCode.NotFound)
+                    }
+                    val isMember = ServerMemberEntity.find { (ServerMembers.serverId eq channel.serverId.value) and (ServerMembers.userId eq user.id.value) }.firstOrNull() != null
+                    if (!isMember) {
+                        return@get call.respond(HttpStatusCode.Forbidden)
+                    }
                     val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
                     val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 50
                     val messages = MessageService.findByChannel(channelId, limit, (page - 1) * limit).map { it.toResponse() }
@@ -327,6 +336,17 @@ fun Route.messageRoutes() {
             post("/messages") {
                 val user = call.principal<UserEntity>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
                 val request = call.receive<SendMessageRequest>()
+                if (request.content.isBlank()) {
+                    return@post call.respond(HttpStatusCode.BadRequest, "Message cannot be empty")
+                }
+                val channel = ChannelService.findById(request.channelId)
+                if (channel == null) {
+                    return@post call.respond(HttpStatusCode.NotFound, "Channel not found")
+                }
+                val isMember = ServerMemberEntity.find { (ServerMembers.serverId eq channel.serverId.value) and (ServerMembers.userId eq user.id.value) }.firstOrNull() != null
+                if (!isMember) {
+                    return@post call.respond(HttpStatusCode.Forbidden)
+                }
                 val message = MessageService.create(request.channelId, user.id.value, request.content)
                 call.respond(HttpStatusCode.Created, message.toResponse())
             }
