@@ -8,6 +8,6 @@ object Constants {
     const val KEY_USERNAME = "username"
     const val KEY_THEME = "theme"
 
-    const val BASE_URL = "https://api.bunny.app/"
-    const val SOCKET_URL = "wss://gateway.bunny.app"
+    const val BASE_URL = "http://10.0.2.2:8080/"
+    const val SOCKET_URL = "ws://10.0.2.2:8080"
 }
