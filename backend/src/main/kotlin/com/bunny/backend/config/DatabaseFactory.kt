@@ -50,12 +50,11 @@ object DatabaseFactory {
     private fun jdbcInfo(env: Map<String, String>): JdbcInfo {
         val rawUrl = env["DATABASE_URL"]
         if (rawUrl != null) {
-            val normalized = normalizeJdbcUrl(rawUrl)
-            val hasUserInfo = normalized.substringAfter("://").contains("@")
-            return JdbcInfo(
-                url = normalized,
-                username = if (hasUserInfo) null else env["DATABASE_USER"] ?: env["PGUSER"] ?: "postgres",
-                password = if (hasUserInfo) null else env["DATABASE_PASSWORD"] ?: env["PGPASSWORD"] ?: "postgres"
+            val parsed = parseUrl(rawUrl)
+            if (parsed.username != null) return parsed
+            return parsed.copy(
+                username = env["DATABASE_USER"] ?: env["PGUSER"] ?: "postgres",
+                password = env["DATABASE_PASSWORD"] ?: env["PGPASSWORD"] ?: "postgres"
             )
         }
 
@@ -75,7 +74,40 @@ object DatabaseFactory {
         )
     }
 
+    private fun parseUrl(rawUrl: String): JdbcInfo {
+        val normalized = normalizeJdbcUrl(rawUrl)
+        val rest = normalized.substringAfter("://")
+        val at = rest.indexOf('@')
+        if (at < 0) return JdbcInfo(normalized, null, null)
+        val credentials = rest.substring(0, at)
+        val hostPart = rest.substring(at + 1)
+        return JdbcInfo(
+            url = "jdbc:postgresql://$hostPart",
+            username = decodeUserInfo(credentials.substringBefore(':')),
+            password = decodeUserInfo(credentials.substringAfter(':', ""))
+        )
+    }
+
     private fun normalizeJdbcUrl(url: String): String =
         if (url.startsWith("jdbc:postgresql:")) url
         else "jdbc:postgresql://" + url.substringAfter("://")
+
+    private fun decodeUserInfo(value: String): String {
+        val out = StringBuilder()
+        var i = 0
+        while (i < value.length) {
+            val c = value[i]
+            if (c == '%' && i + 2 < value.length) {
+                val hex = value.substring(i + 1, i + 3).toIntOrNull(16)
+                if (hex != null) {
+                    out.append(hex.toChar())
+                    i += 3
+                    continue
+                }
+            }
+            out.append(c)
+            i++
+        }
+        return out.toString()
+    }
 }
