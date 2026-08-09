@@ -148,8 +148,8 @@ and resumes the heartbeat on the new connection (like Discord's gateway resume).
 
 ### Backend + Postgres
 ```bash
-cd Bunny/docker
-docker-compose up
+# a partir da raiz do repositório
+docker compose -f docker/docker-compose.yml up --build
 ```
 
 ### Android App

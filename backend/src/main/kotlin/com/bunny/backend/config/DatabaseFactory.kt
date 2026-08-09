@@ -9,10 +9,10 @@ import org.jetbrains.exposed.sql.transactions.transaction
 object DatabaseFactory {
     fun init() {
         val config = HikariConfig().apply {
-            jdbcUrl = "jdbc:postgresql://localhost:5432/bunny"
+            jdbcUrl = System.getenv("DATABASE_URL") ?: "jdbc:postgresql://localhost:5432/bunny"
             driver = "org.postgresql.Driver"
-            username = "postgres"
-            password = "postgres"
+            username = System.getenv("DATABASE_USER") ?: "postgres"
+            password = System.getenv("DATABASE_PASSWORD") ?: "postgres"
             maximumPoolSize = 10
         }
         val dataSource = HikariDataSource(config)

@@ -1,12 +1,11 @@
-FROM eclipse-temurin:17-jdk-jammy AS builder
+FROM gradle:8.7-jdk17 AS builder
+USER root
 WORKDIR /app
-COPY backend/build.gradle.kts backend/settings.gradle.kts ./
-COPY backend/src ./src
-RUN apt-get update && apt-get install -y gradle
-RUN gradle :backend:shadowJar
+COPY backend/ backend/
+RUN gradle -p backend installDist --no-daemon
 
-FROM eclipse-temurin:17-jdk-jammy
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
-COPY --from=builder /app/backend/build/libs/*-all.jar app.jar
+COPY --from=builder /app/backend/build/install/bunny-backend/ ./
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["/app/bin/bunny-backend"]
