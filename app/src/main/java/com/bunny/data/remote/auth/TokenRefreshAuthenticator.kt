@@ -30,7 +30,7 @@ class TokenRefreshAuthenticator @Inject constructor(
     override fun authenticate(route: Route?, response: Response): Request? {
         val refreshToken = prefs.getString(Constants.KEY_REFRESH_TOKEN, null)
         if (refreshToken.isNullOrEmpty()) return null
-        if (response.request().header("Authorization") == null) return null
+        if (response.request.header("Authorization") == null) return null
 
         return try {
             val body = "{\"refresh_token\":\"$refreshToken\"}"
@@ -47,7 +47,7 @@ class TokenRefreshAuthenticator @Inject constructor(
                 prefs.edit()
                     .putString(Constants.KEY_ACCESS_TOKEN, authResponse.accessToken)
                     .apply()
-                response.request().newBuilder()
+                response.request.newBuilder()
                     .header("Authorization", "Bearer ${authResponse.accessToken}")
                     .build()
             }
