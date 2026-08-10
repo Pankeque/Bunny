@@ -40,6 +40,7 @@ import com.bunny.domain.repository.UserRepository
 import com.bunny.domain.repository.RoleRepository
 import com.bunny.util.Constants
 import kotlinx.coroutines.flow.map
+import retrofit2.Response
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -107,6 +108,7 @@ class AuthRepositoryImpl @Inject constructor(
             .putString(Constants.KEY_REFRESH_TOKEN, response.refreshToken)
             .putInt(Constants.KEY_USER_ID, response.user.id)
             .putString(Constants.KEY_USERNAME, response.user.username)
+            .putString(Constants.KEY_AVATAR_URL, response.user.avatarUrl)
             .putString(Constants.KEY_THEME, response.user.theme ?: "dark")
             .apply()
         refreshTokenDao.insertToken(
@@ -132,6 +134,15 @@ class ServerRepositoryImpl @Inject constructor(
     private val api: BunnyApi,
     private val serverDao: ServerDao
 ) : ServerRepository {
+    private fun <T> Response<T>.errorMessage(fallback: String): String {
+        return try {
+            val body = errorBody()?.string()
+            if (body.isNullOrBlank()) fallback else body
+        } catch (e: Exception) {
+            fallback
+        }
+    }
+
     override suspend fun getServers(): Result<List<Server>> {
         return try {
             val response = api.getServers()
@@ -162,7 +173,7 @@ class ServerRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(response.body()!!.toDomain())
             } else {
-                Result.failure(Exception("Failed to create server"))
+                Result.failure(Exception(response.errorMessage("Failed to create server")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -176,7 +187,7 @@ class ServerRepositoryImpl @Inject constructor(
                 serverDao.deleteServer(serverId)
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Failed to delete server"))
+                Result.failure(Exception(response.errorMessage("Failed to delete server")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -189,7 +200,7 @@ class ServerRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(response.body()!!.toDomain())
             } else {
-                Result.failure(Exception("Failed to join server"))
+                Result.failure(Exception(response.errorMessage("Failed to join server")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -203,7 +214,7 @@ class ServerRepositoryImpl @Inject constructor(
                 serverDao.deleteServer(serverId)
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Failed to leave server"))
+                Result.failure(Exception(response.errorMessage("Failed to leave server")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -216,7 +227,7 @@ class ServerRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(response.body()!!.toDomain())
             } else {
-                Result.failure(Exception("Failed to update server"))
+                Result.failure(Exception(response.errorMessage("Failed to update server")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -234,7 +245,7 @@ class ServerRepositoryImpl @Inject constructor(
                     Result.failure(Exception("Empty invite code"))
                 }
             } else {
-                Result.failure(Exception("Failed to regenerate invite code"))
+                Result.failure(Exception(response.errorMessage("Failed to regenerate invite code")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -366,7 +377,8 @@ class MessageRepositoryImpl @Inject constructor(
 @Singleton
 class UserRepositoryImpl @Inject constructor(
     private val api: BunnyApi,
-    private val userDao: UserDao
+    private val userDao: UserDao,
+    private val prefs: SharedPreferences
 ) : UserRepository {
     override suspend fun updateProfile(username: String?, avatarUrl: String?, theme: String?): Result<User> {
         return try {
@@ -381,9 +393,15 @@ class UserRepositoryImpl @Inject constructor(
                         theme = body.theme
                     )
                 )
+                prefs.edit()
+                    .putString(Constants.KEY_USERNAME, body.username)
+                    .putString(Constants.KEY_AVATAR_URL, body.avatarUrl)
+                    .putString(Constants.KEY_THEME, body.theme)
+                    .apply()
                 Result.success(body)
             } else {
-                Result.failure(Exception("Failed to update profile"))
+                val errorBody = response.errorBody()?.string()
+                Result.failure(Exception(errorBody?.takeIf { it.isNotBlank() } ?: "Failed to update profile"))
             }
         } catch (e: Exception) {
             Result.failure(e)

@@ -18,7 +18,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.bunny.domain.model.Channel
 import com.bunny.ui.common.ConfirmDialog
-import com.bunny.ui.theme.BunnyTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,41 +43,39 @@ fun ChannelListScreen(
         }
     }
 
-    BunnyTheme {
-        Surface(modifier = modifier.fillMaxSize()) {
-            Scaffold(
-                topBar = {
-                    TopAppBar(
-                        title = { Text(serverName.ifEmpty { "Channels" }) },
-                        actions = {
-                            IconButton(onClick = { showCreateDialog = true }) {
-                                Icon(Icons.Default.Add, contentDescription = "Create")
-                            }
-                        }
-                    )
-                },
-                bottomBar = { com.bunny.ui.BunnyBottomNav(navController) }
-            ) { padding ->
-                Column(modifier = Modifier.padding(padding).padding(24.dp)) {
-                    if (channels.isEmpty() && !isLoading) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text("No channels", style = MaterialTheme.typography.bodyLarge)
+    Surface(modifier = modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(serverName.ifEmpty { "Channels" }) },
+                    actions = {
+                        IconButton(onClick = { showCreateDialog = true }) {
+                            Icon(Icons.Default.Add, contentDescription = "Create")
                         }
                     }
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(channels) { channel ->
-                            ChannelCard(
-                                channel = channel,
-                                onClick = { navController.navigate("chat/${channel.id}") },
-                                onSettings = { navController.navigate("channels/${channel.id}/settings") },
-                                onDelete = { channelToDelete = channel }
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                        }
+                )
+            },
+            bottomBar = { com.bunny.ui.BunnyBottomNav(navController) }
+        ) { padding ->
+            Column(modifier = Modifier.padding(padding).padding(24.dp)) {
+                if (channels.isEmpty() && !isLoading) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text("No channels", style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(channels) { channel ->
+                        ChannelCard(
+                            channel = channel,
+                            onClick = { navController.navigate("chat/${channel.id}") },
+                            onSettings = { navController.navigate("channels/${channel.id}/settings") },
+                            onDelete = { channelToDelete = channel }
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
                 }
             }

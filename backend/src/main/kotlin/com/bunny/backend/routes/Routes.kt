@@ -114,6 +114,12 @@ fun Route.serverRoutes() {
             post {
                 val user = call.principal<UserEntity>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
                 val request = call.receive<CreateServerRequest>()
+                if (request.name.isBlank()) {
+                    return@post call.respond(HttpStatusCode.BadRequest, "Server name cannot be empty")
+                }
+                if (request.name.length > 100) {
+                    return@post call.respond(HttpStatusCode.BadRequest, "Server name must be at most 100 characters")
+                }
                 try {
                     val server = ServerService.create(request.name, user.id.value)
                     call.respond(HttpStatusCode.Created, server.toResponse())

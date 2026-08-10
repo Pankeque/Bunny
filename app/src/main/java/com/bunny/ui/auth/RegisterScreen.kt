@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bunny.ui.common.ErrorDialog
-import com.bunny.ui.theme.BunnyTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,85 +26,83 @@ fun RegisterScreen(navController: NavController, modifier: Modifier = Modifier) 
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    BunnyTheme {
-        Surface(modifier = modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text("Create Bunny Account", style = MaterialTheme.typography.headlineMedium)
-                Spacer(modifier = Modifier.height(32.dp))
+    Surface(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text("Create Bunny Account", style = MaterialTheme.typography.headlineMedium)
+            Spacer(modifier = Modifier.height(32.dp))
 
-                OutlinedTextField(
-                    value = username,
-                    onValueChange = { username = it },
-                    label = { Text("Username") },
-                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
+                value = username,
+                onValueChange = { username = it },
+                label = { Text("Username") },
+                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
+            )
+            Spacer(modifier = Modifier.height(16.dp))
 
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text("Password") },
-                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
+            )
+            Spacer(modifier = Modifier.height(16.dp))
 
-                OutlinedTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    label = { Text("Confirm Password") },
-                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium
-                )
-                Spacer(modifier = Modifier.height(32.dp))
+            OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                label = { Text("Confirm Password") },
+                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
+            )
+            Spacer(modifier = Modifier.height(32.dp))
 
-                Button(
-                    onClick = {
-                        if (password != confirmPassword) {
-                            errorMessage = "Passwords do not match"
-                            return@Button
-                        }
-                        isLoading = true
-                        viewModel.register(username, password) { result ->
-                            isLoading = false
-                            result.onSuccess {
-                                navController.navigate("servers") {
-                                    popUpTo("login") { inclusive = true }
-                                }
-                            }.onFailure { e ->
-                                errorMessage = e.message ?: "Registration failed"
+            Button(
+                onClick = {
+                    if (password != confirmPassword) {
+                        errorMessage = "Passwords do not match"
+                        return@Button
+                    }
+                    isLoading = true
+                    viewModel.register(username, password) { result ->
+                        isLoading = false
+                        result.onSuccess {
+                            navController.navigate("servers") {
+                                popUpTo("login") { inclusive = true }
                             }
+                        }.onFailure { e ->
+                            errorMessage = e.message ?: "Registration failed"
                         }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !isLoading && username.isNotBlank() && password.isNotBlank(),
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    if (isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary)
-                    else Text("Register")
-                }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading && username.isNotBlank() && password.isNotBlank(),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                if (isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary)
+                else Text("Register")
+            }
 
-                Spacer(modifier = Modifier.height(12.dp))
-                TextButton(onClick = { navController.popBackStack() }) {
-                    Text("Already have an account? Login")
-                }
+            Spacer(modifier = Modifier.height(12.dp))
+            TextButton(onClick = { navController.popBackStack() }) {
+                Text("Already have an account? Login")
+            }
 
-                errorMessage?.let { msg ->
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ErrorDialog(message = msg, onDismiss = { errorMessage = null })
-                }
+            errorMessage?.let { msg ->
+                Spacer(modifier = Modifier.height(8.dp))
+                ErrorDialog(message = msg, onDismiss = { errorMessage = null })
             }
         }
     }

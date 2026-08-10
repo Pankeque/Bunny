@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bunny.ui.common.ConfirmDialog
-import com.bunny.ui.theme.BunnyTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,86 +36,84 @@ fun ChannelSettingScreen(navController: NavController, channelId: Int, modifier:
         }
     }
 
-    BunnyTheme {
-        Surface(modifier = modifier.fillMaxSize()) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                TopAppBar(
-                    title = { Text("Channel Settings") },
-                    navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                        }
+    Surface(modifier = modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            TopAppBar(
+                title = { Text("Channel Settings") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
+                }
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                OutlinedTextField(
+                    value = channelName,
+                    onValueChange = { channelName = it },
+                    label = { Text("Channel Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium
                 )
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text("Channel Type", style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedTextField(
-                        value = channelName,
-                        onValueChange = { channelName = it },
-                        label = { Text("Channel Name") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = MaterialTheme.shapes.medium
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text("Channel Type", style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth())
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        listOf("text", "voice").forEach { type ->
-                            FilterChip(
-                                selected = channelType == type,
-                                onClick = { channelType = type },
-                                label = { Text(type.capitalize()) },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
+                    listOf("text", "voice").forEach { type ->
+                        FilterChip(
+                            selected = channelType == type,
+                            onClick = { channelType = type },
+                            label = { Text(type.capitalize()) },
+                            modifier = Modifier.weight(1f)
+                        )
                     }
+                }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                    Button(
-                        onClick = {
-                            isLoading = true
-                            viewModel.updateChannel(channelId, channelName, channelType) { result ->
-                                isLoading = false
-                                result.onSuccess { navController.popBackStack() }
-                                    .onFailure { e -> errorMessage = e.message }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !isLoading && channelName.isNotBlank(),
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary)
-                        } else {
-                            Icon(Icons.Default.Check, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Save")
+                Button(
+                    onClick = {
+                        isLoading = true
+                        viewModel.updateChannel(channelId, channelName, channelType) { result ->
+                            isLoading = false
+                            result.onSuccess { navController.popBackStack() }
+                                .onFailure { e -> errorMessage = e.message }
                         }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedButton(
-                        onClick = { intentToDelete = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Icon(Icons.Default.Delete, contentDescription = null)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !isLoading && channelName.isNotBlank(),
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    } else {
+                        Icon(Icons.Default.Check, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Delete Channel")
+                        Text("Save")
                     }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedButton(
+                    onClick = { intentToDelete = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Delete Channel")
                 }
             }
         }

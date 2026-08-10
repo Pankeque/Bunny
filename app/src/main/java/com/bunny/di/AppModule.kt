@@ -10,6 +10,8 @@ import com.bunny.data.local.dao.RefreshTokenDao
 import com.bunny.data.local.dao.ServerDao
 import com.bunny.data.local.dao.UserDao
 import com.bunny.data.remote.api.BunnyApi
+import com.bunny.data.remote.auth.AuthInterceptor
+import com.bunny.data.remote.auth.TokenRefreshAuthenticator
 import com.bunny.data.remote.socket.SocketService
 import com.bunny.data.repository.AuthRepositoryImpl
 import com.bunny.data.repository.ChannelRepositoryImpl
@@ -48,14 +50,19 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor,
+        refreshAuthenticator: TokenRefreshAuthenticator
+    ): OkHttpClient {
         return OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor(authInterceptor)
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })
+            .authenticator(refreshAuthenticator)
             .build()
     }
 
@@ -126,8 +133,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideUserRepository(api: BunnyApi, userDao: UserDao): UserRepository {
-        return UserRepositoryImpl(api, userDao)
+    fun provideUserRepository(api: BunnyApi, userDao: UserDao, prefs: SharedPreferences): UserRepository {
+        return UserRepositoryImpl(api, userDao, prefs)
     }
 
     @Provides

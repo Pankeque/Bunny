@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bunny.ui.common.ErrorDialog
-import com.bunny.ui.theme.BunnyTheme
 import com.bunny.util.Constants
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,72 +36,70 @@ fun LoginScreen(navController: NavController, modifier: Modifier = Modifier) {
         }
     }
 
-    BunnyTheme {
-        Surface(modifier = modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text("Bunny", style = MaterialTheme.typography.headlineMedium)
-                Spacer(modifier = Modifier.height(40.dp))
+    Surface(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text("Bunny", style = MaterialTheme.typography.headlineMedium)
+            Spacer(modifier = Modifier.height(40.dp))
 
-                OutlinedTextField(
-                    value = username,
-                    onValueChange = { username = it },
-                    label = { Text("Username") },
-                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
+                value = username,
+                onValueChange = { username = it },
+                label = { Text("Username") },
+                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
+            )
+            Spacer(modifier = Modifier.height(16.dp))
 
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text("Password") },
-                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium
-                )
-                Spacer(modifier = Modifier.height(32.dp))
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
+            )
+            Spacer(modifier = Modifier.height(32.dp))
 
-                Button(
-                    onClick = {
-                        isLoading = true
-                        viewModel.login(username, password) { result ->
-                            isLoading = false
-                            result.onSuccess {
-                                navController.navigate("servers") {
-                                    popUpTo("login") { inclusive = true }
-                                }
-                            }.onFailure { e ->
-                                errorMessage = e.message ?: "Login failed"
+            Button(
+                onClick = {
+                    isLoading = true
+                    viewModel.login(username, password) { result ->
+                        isLoading = false
+                        result.onSuccess {
+                            navController.navigate("servers") {
+                                popUpTo("login") { inclusive = true }
                             }
+                        }.onFailure { e ->
+                            errorMessage = e.message ?: "Login failed"
                         }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !isLoading && username.isNotBlank() && password.isNotBlank(),
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    if (isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary)
-                    else Text("Login")
-                }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading && username.isNotBlank() && password.isNotBlank(),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                if (isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary)
+                else Text("Login")
+            }
 
-                Spacer(modifier = Modifier.height(16.dp))
-                TextButton(onClick = {
-                    navController.navigate("register")
-                }) {
-                    Text("Don't have an account? Register")
-                }
+            Spacer(modifier = Modifier.height(16.dp))
+            TextButton(onClick = {
+                navController.navigate("register")
+            }) {
+                Text("Don't have an account? Register")
+            }
 
-                errorMessage?.let { msg ->
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ErrorDialog(message = msg, onDismiss = { errorMessage = null })
-                }
+            errorMessage?.let { msg ->
+                Spacer(modifier = Modifier.height(8.dp))
+                ErrorDialog(message = msg, onDismiss = { errorMessage = null })
             }
         }
     }

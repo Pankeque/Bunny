@@ -6,6 +6,7 @@ object Constants {
     const val KEY_REFRESH_TOKEN = "refresh_token"
     const val KEY_USER_ID = "user_id"
     const val KEY_USERNAME = "username"
+    const val KEY_AVATAR_URL = "avatar_url"
     const val KEY_THEME = "theme"
 
     const val BASE_URL = "https://bunny-backend-lq2l.onrender.com/"

@@ -59,6 +59,23 @@ class ServerViewModel @Inject constructor(
         }
     }
 
+    fun deleteServer(serverId: Int, onResult: (Result<Unit>) -> Unit = {}) {
+        viewModelScope.launch {
+            val result = serverRepository.deleteServer(serverId)
+            if (result.isSuccess) {
+                _servers.value = _servers.value.filter { it.id != serverId }
+            }
+            onResult(result)
+        }
+    }
+
+    fun regenerateInviteCode(serverId: Int, onResult: (Result<String>) -> Unit = {}) {
+        viewModelScope.launch {
+            val result = serverRepository.regenerateInviteCode(serverId)
+            onResult(result)
+        }
+    }
+
     fun updateServer(serverId: Int, name: String?, iconUrl: String?, onResult: (Result<com.bunny.domain.model.Server>) -> Unit = {}) {
         viewModelScope.launch {
             val result = serverRepository.updateServer(serverId, name, iconUrl)

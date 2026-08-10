@@ -125,6 +125,12 @@ object ServerService {
     }
 
     fun addMember(serverId: Int, userId: Int): Boolean = transaction {
+        val alreadyMember = ServerMemberEntity.find {
+            (ServerMembers.serverId eq serverId) and (ServerMembers.userId eq userId)
+        }.firstOrNull()
+        if (alreadyMember != null) {
+            return@transaction false
+        }
         val defaultRole = RoleEntity.find { (Roles.serverId eq serverId) and (Roles.name eq "member") }.firstOrNull()
             ?: RoleEntity.new {
                 this.serverId = EntityID(serverId, Servers)
@@ -139,7 +145,7 @@ object ServerService {
             }
             true
         } catch (e: org.jetbrains.exposed.exceptions.ExposedSQLException) {
-            true
+            false
         }
     }
 

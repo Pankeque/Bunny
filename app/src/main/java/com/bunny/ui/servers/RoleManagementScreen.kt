@@ -19,7 +19,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bunny.domain.model.Role
 import com.bunny.ui.common.ConfirmDialog
-import com.bunny.ui.theme.BunnyTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,41 +36,39 @@ fun RoleManagementScreen(navController: NavController, serverId: Int, modifier: 
         }
     }
 
-    BunnyTheme {
-        Surface(modifier = modifier.fillMaxSize()) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                TopAppBar(
-                    title = { Text("Roles") },
-                    navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = { showCreateDialog = true }) {
-                            Icon(Icons.Default.PlayArrow, contentDescription = "Create Role")
-                        }
+    Surface(modifier = modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            TopAppBar(
+                title = { Text("Roles") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
-                )
-
-                if (roles.isEmpty() && !isLoading) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text("No roles yet", style = MaterialTheme.typography.bodyLarge)
+                },
+                actions = {
+                    IconButton(onClick = { showCreateDialog = true }) {
+                        Icon(Icons.Default.PlayArrow, contentDescription = "Create Role")
                     }
                 }
+            )
 
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(roles) { role ->
-                        RoleCard(
-                            role = role,
-                            onDelete = { roleToDelete = role }
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                    }
+            if (roles.isEmpty() && !isLoading) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text("No roles yet", style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(roles) { role ->
+                    RoleCard(
+                        role = role,
+                        onDelete = { roleToDelete = role }
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
                 }
             }
         }

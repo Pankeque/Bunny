@@ -21,7 +21,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.bunny.data.remote.socket.ConnectionState
 import com.bunny.domain.model.Message
-import com.bunny.ui.theme.BunnyTheme
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,90 +54,88 @@ fun ChatScreen(
         }
     }
 
-    BunnyTheme {
-        Surface(modifier = modifier.fillMaxSize()) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                TopAppBar(title = {
-                    Column {
-                        Text(channelName)
-                        val onlineCount = onlineUserIds.count { it != currentUser }
-                        if (onlineCount > 0) {
-                            Text(
-                                text = "$onlineCount online",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }, navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                })
-
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    reverseLayout = true,
-                    contentPadding = PaddingValues(vertical = 24.dp, horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(messages.reversed()) { message ->
-                        MessageItem(
-                            message = message,
-                            isCurrentUser = message.userId == (currentUser ?: 0)
-                        )
-                    }
-                }
-
-                if (connectionState is ConnectionState.Reconnecting ||
-                    connectionState is ConnectionState.Connecting
-                ) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.tertiaryContainer,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+    Surface(modifier = modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            TopAppBar(title = {
+                Column {
+                    Text(channelName)
+                    val onlineCount = onlineUserIds.count { it != currentUser }
+                    if (onlineCount > 0) {
                         Text(
-                            text = if (connectionState is ConnectionState.Reconnecting) {
-                                "Reconnecting…"
-                            } else {
-                                "Connecting…"
-                            },
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                            style = MaterialTheme.typography.labelMedium
+                            text = "$onlineCount online",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
+            }, navigationIcon = {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                }
+            })
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = inputText,
-                        onValueChange = { inputText = it },
-                        placeholder = { Text("Message") },
-                        modifier = Modifier.weight(1f),
-                        maxLines = 5,
-                        shape = MaterialTheme.shapes.medium
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                reverseLayout = true,
+                contentPadding = PaddingValues(vertical = 24.dp, horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(messages.reversed()) { message ->
+                    MessageItem(
+                        message = message,
+                        isCurrentUser = message.userId == (currentUser ?: 0)
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    FloatingActionButton(
-                        onClick = {
-                            if (inputText.isNotBlank()) {
-                                viewModel.sendMessage(channelId, inputText)
-                                inputText = ""
-                            }
+                }
+            }
+
+            if (connectionState is ConnectionState.Reconnecting ||
+                connectionState is ConnectionState.Connecting
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = if (connectionState is ConnectionState.Reconnecting) {
+                            "Reconnecting…"
+                        } else {
+                            "Connecting…"
                         },
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(56.dp)
-                    ) {
-                        Icon(Icons.Default.Send, contentDescription = "Send", tint = MaterialTheme.colorScheme.onPrimary)
-                    }
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = inputText,
+                    onValueChange = { inputText = it },
+                    placeholder = { Text("Message") },
+                    modifier = Modifier.weight(1f),
+                    maxLines = 5,
+                    shape = MaterialTheme.shapes.medium
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                FloatingActionButton(
+                    onClick = {
+                        if (inputText.isNotBlank()) {
+                            viewModel.sendMessage(channelId, inputText)
+                            inputText = ""
+                        }
+                    },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(56.dp)
+                ) {
+                    Icon(Icons.Default.Send, contentDescription = "Send", tint = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         }

@@ -19,7 +19,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.bunny.domain.model.Server
 import com.bunny.ui.common.ConfirmDialog
-import com.bunny.ui.theme.BunnyTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +35,7 @@ fun ServerListScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var joinedServer by remember { mutableStateOf<Server?>(null) }
     var joinMessage by remember { mutableStateOf<String?>(null) }
+    var createdServer by remember { mutableStateOf<Server?>(null) }
 
     // Crie o SnackbarHostState AQUI, antes do Scaffold
     val snackbarHostState = remember { SnackbarHostState() }
@@ -55,67 +55,65 @@ fun ServerListScreen(
         }
     }
 
-    BunnyTheme {
-        Surface(modifier = modifier.fillMaxSize()) {
-            Scaffold(
-                topBar = {
-                    TopAppBar(
-                        title = { Text("Bunny") },
-                        actions = {
-                            IconButton(onClick = { showCreateDialog = true }) {
-                                Icon(Icons.Default.Add, contentDescription = "Create")
-                            }
-                            IconButton(onClick = { showJoinDialog = true }) {
-                                Icon(Icons.Default.Public, contentDescription = "Join")
-                            }
+    Surface(modifier = modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Bunny") },
+                    actions = {
+                        IconButton(onClick = { showCreateDialog = true }) {
+                            Icon(Icons.Default.Add, contentDescription = "Create")
                         }
-                    )
-                },
-                bottomBar = { com.bunny.ui.BunnyBottomNav(navController) },
-                // Passe o estado correto aqui
-                snackbarHost = { SnackbarHost(snackbarHostState) }
-            ) { padding ->
-                
-                LaunchedEffect(joinMessage) {
-                    joinMessage?.let {
-                        snackbarHostState.showSnackbar(it)
-                        joinMessage = null
+                        IconButton(onClick = { showJoinDialog = true }) {
+                            Icon(Icons.Default.Public, contentDescription = "Join")
+                        }
+                    }
+                )
+            },
+            bottomBar = { com.bunny.ui.BunnyBottomNav(navController) },
+            // Passe o estado correto aqui
+            snackbarHost = { SnackbarHost(snackbarHostState) }
+        ) { padding ->
+
+            LaunchedEffect(joinMessage) {
+                joinMessage?.let {
+                    snackbarHostState.showSnackbar(it)
+                    joinMessage = null
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(24.dp)
+            ) {
+                if (servers.isEmpty() && !isLoading) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text("No servers yet", style = MaterialTheme.typography.bodyLarge)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Create or join a server to get started", style = MaterialTheme.typography.bodyMedium)
                     }
                 }
-                
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(24.dp)
-                ) {
-                    if (servers.isEmpty() && !isLoading) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text("No servers yet", style = MaterialTheme.typography.bodyLarge)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Create or join a server to get started", style = MaterialTheme.typography.bodyMedium)
-                        }
-                    }
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(servers) { server ->
-                            ServerCard(
-                                server = server,
-                                onClick = {
-                                    navController.navigate("channels/${server.id}")
-                                },
-                                onSettings = {
-                                    navController.navigate("servers/${server.id}/settings")
-                                },
-                                onLeave = {
-                                    intentToLeave = server
-                                }
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                        }
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(servers) { server ->
+                        ServerCard(
+                            server = server,
+                            onClick = {
+                                navController.navigate("channels/${server.id}")
+                            },
+                            onSettings = {
+                                navController.navigate("servers/${server.id}/settings")
+                            },
+                            onLeave = {
+                                intentToLeave = server
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
                 }
             }
@@ -130,7 +128,8 @@ fun ServerListScreen(
                 viewModel.createServer(name) { result ->
                     showCreateDialog = false
                     isLoading = false
-                    result.onSuccess {
+                    result.onSuccess { server ->
+                        createdServer = server
                         viewModel.loadServers { r -> r.onSuccess { servers = it } }
                     }.onFailure { e ->
                         errorMessage = e.message
@@ -178,6 +177,13 @@ fun ServerListScreen(
                 intentToLeave = null
             },
             onDismiss = { intentToLeave = null }
+        )
+    }
+
+    createdServer?.let { server ->
+        InviteCodeDialog(
+            server = server,
+            onDismiss = { createdServer = null }
         )
     }
 
@@ -281,6 +287,30 @@ fun JoinServerDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit, errorMe
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
+
+@Composable
+fun InviteCodeDialog(server: Server, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Server Created") },
+        text = {
+            Column {
+                Text("Share this invite code so friends can join ${server.name}:")
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = server.inviteCode,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("OK") }
         }
     )
 }

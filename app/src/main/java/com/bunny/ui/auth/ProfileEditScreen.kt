@@ -41,8 +41,8 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
     val prefs = navController.context.getSharedPreferences(Constants.PREFS_NAME, android.content.Context.MODE_PRIVATE)
     LaunchedEffect(Unit) {
         username = prefs.getString(Constants.KEY_USERNAME, "") ?: ""
-        avatarUrl = prefs.getString("avatar_url", "") ?: ""
-        val themeStr = prefs.getString("theme", "dark")
+        avatarUrl = prefs.getString(Constants.KEY_AVATAR_URL, "") ?: ""
+        val themeStr = prefs.getString(Constants.KEY_THEME, "dark")
         selectedTheme = com.bunny.util.ThemeUtils.getThemeFromString(themeStr)
     }
 
