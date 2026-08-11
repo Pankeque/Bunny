@@ -165,6 +165,7 @@ fun ChannelCard(channel: Channel, onClick: () -> Unit, onSettings: () -> Unit, o
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateChannelDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit) {
     var name by remember { mutableStateOf("") }
