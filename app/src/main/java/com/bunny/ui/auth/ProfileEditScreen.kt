@@ -6,16 +6,21 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.CameraAlt
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -24,6 +29,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.bunny.ui.common.GradientButton
+import com.bunny.ui.common.SectionHeader
+import com.bunny.ui.common.brandGradientBrush
+import com.bunny.ui.common.brandGradientColors
 import com.bunny.ui.theme.AppTheme
 import com.bunny.ui.theme.BunnyTheme
 import com.bunny.util.Constants
@@ -71,25 +80,30 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
         Surface(modifier = modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize()) {
                 TopAppBar(
-                    title = { Text("Edit Profile") },
+                    title = { Text("Edit Profile", fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                            Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
                 )
 
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(32.dp),
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp)
+                        .padding(top = 8.dp, bottom = 32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    SectionHeader("Avatar", modifier = Modifier.fillMaxWidth())
+
                     Box(
                         modifier = Modifier
-                            .size(100.dp)
+                            .size(110.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary),
+                            .background(brandGradientBrush(selectedTheme)),
                         contentAlignment = Alignment.Center
                     ) {
                         val displayModel: Any = avatarUri ?: avatarUrl
@@ -102,17 +116,22 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
                             )
                         } else {
                             Icon(
-                                imageVector = Icons.Default.Person,
+                                imageVector = Icons.Rounded.Person,
                                 contentDescription = null,
-                                modifier = Modifier.size(60.dp),
-                                tint = MaterialTheme.colorScheme.onPrimary
+                                modifier = Modifier.size(56.dp),
+                                tint = Color.White
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                    OutlinedButton(onClick = { avatarPicker.launch("image/*") }) {
+                    OutlinedButton(
+                        onClick = { avatarPicker.launch("image/*") },
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(Icons.Rounded.CameraAlt, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text("Change Avatar")
                     }
                     avatarError?.let { err ->
@@ -120,43 +139,56 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
                         Text(err, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(28.dp))
 
-                    OutlinedTextField(
-                        value = username,
-                        onValueChange = { username = it; usernameError = null },
-                        label = { Text("Username") },
+                    SectionHeader("General", modifier = Modifier.fillMaxWidth())
+
+                    Card(
                         modifier = Modifier.fillMaxWidth(),
-                        isError = usernameError != null,
-                        supportingText = usernameError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } }
-                    )
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(18.dp)) {
+                            Text("Username", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = username,
+                                onValueChange = { username = it; usernameError = null },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
+                                isError = usernameError != null,
+                                supportingText = usernameError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                        }
+                    }
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(28.dp))
 
-                    Text("Theme", style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth())
-                    Spacer(modifier = Modifier.height(12.dp))
+                    SectionHeader("Theme", modifier = Modifier.fillMaxWidth())
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         ThemeOption(
                             name = "Dark",
-                            color = Color(0xFF1E1F22),
+                            gradient = brandGradientColors(AppTheme.DARK),
                             selected = selectedTheme == AppTheme.DARK,
                             onClick = { selectedTheme = AppTheme.DARK },
                             modifier = Modifier.weight(1f)
                         )
                         ThemeOption(
                             name = "Light",
-                            color = Color(0xFFFFFFFF),
+                            gradient = brandGradientColors(AppTheme.LIGHT),
                             selected = selectedTheme == AppTheme.LIGHT,
                             onClick = { selectedTheme = AppTheme.LIGHT },
                             modifier = Modifier.weight(1f)
                         )
                         ThemeOption(
                             name = "Yellow",
-                            color = Color(0xFFFFD700),
+                            gradient = brandGradientColors(AppTheme.YELLOW),
                             selected = selectedTheme == AppTheme.YELLOW,
                             onClick = { selectedTheme = AppTheme.YELLOW },
                             modifier = Modifier.weight(1f)
@@ -165,7 +197,7 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    Button(
+                    GradientButton(
                         onClick = {
                             usernameError = null
                             avatarError = null
@@ -180,7 +212,7 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
                                 usernameError = "Username must be at most 50 characters"
                                 hasError = true
                             }
-                            if (hasError) return@Button
+                            if (hasError) return@GradientButton
                             isLoading = true
                             val theme = selectedTheme.name.lowercase()
                             if (avatarBytes != null && avatarMime != null) {
@@ -212,16 +244,10 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
                         },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = !isLoading,
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary)
-                        } else {
-                            Icon(Icons.Default.Check, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Save")
-                        }
-                    }
+                        icon = Icons.Rounded.Check,
+                        text = if (isLoading) "Saving…" else "Save Changes",
+                        theme = selectedTheme
+                    )
                 }
             }
         }
@@ -240,20 +266,23 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
 }
 
 @Composable
-fun ThemeOption(name: String, color: Color, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun ThemeOption(name: String, gradient: List<Color>, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
-            .clip(MaterialTheme.shapes.medium)
-            .background(if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant)
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                if (selected) MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.surface
+            )
             .clickable { onClick() }
-            .padding(16.dp),
+            .padding(vertical = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .size(44.dp)
                 .clip(CircleShape)
-                .background(color)
+                .background(Brush.linearGradient(gradient))
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(

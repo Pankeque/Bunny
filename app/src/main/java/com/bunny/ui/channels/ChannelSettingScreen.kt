@@ -1,19 +1,28 @@
 package com.bunny.ui.channels
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Tag
+import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bunny.ui.common.ConfirmDialog
+import com.bunny.ui.common.GradientButton
+import com.bunny.ui.common.SectionHeader
+import com.bunny.util.Constants
+import com.bunny.util.ThemeUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,6 +33,8 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var intentToDelete by remember { mutableStateOf<Boolean>(false) }
+    val prefs = navController.context.getSharedPreferences(Constants.PREFS_NAME, android.content.Context.MODE_PRIVATE)
+    val currentTheme = ThemeUtils.getThemeFromString(prefs.getString(Constants.KEY_THEME, "dark"))
 
     LaunchedEffect(serverId, channelId) {
         viewModel.loadChannels(serverId) { result ->
@@ -39,49 +50,70 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
     Surface(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
-                title = { Text("Channel Settings") },
+                title = { Text("Channel Settings", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(32.dp),
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 8.dp, bottom = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                OutlinedTextField(
-                    value = channelName,
-                    onValueChange = { channelName = it },
-                    label = { Text("Channel Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium
-                )
+                SectionHeader("General", modifier = Modifier.fillMaxWidth())
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text("Channel Type", style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    listOf("text", "voice").forEach { type ->
-                        FilterChip(
-                            selected = channelType == type,
-                            onClick = { channelType = type },
-                            label = { Text(type.capitalize()) },
-                            modifier = Modifier.weight(1f)
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Text("Channel Name", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = channelName,
+                            onValueChange = { channelName = it },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp)
                         )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Channel Type", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            listOf("text", "voice").forEach { type ->
+                                FilterChip(
+                                    selected = channelType == type,
+                                    onClick = { channelType = type },
+                                    label = { Text(type.replaceFirstChar { it.uppercase() }) },
+                                    leadingIcon = {
+                                        Icon(
+                                            if (type == "voice") Icons.Rounded.Videocam else Icons.Rounded.Tag,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
-                Button(
+                GradientButton(
                     onClick = {
                         isLoading = true
                         viewModel.updateChannel(channelId, channelName, channelType) { result ->
@@ -92,26 +124,20 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
                     },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !isLoading && channelName.isNotBlank(),
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary)
-                    } else {
-                        Icon(Icons.Default.Check, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Save")
-                    }
-                }
+                    icon = Icons.Rounded.Check,
+                    text = if (isLoading) "Saving…" else "Save Changes",
+                    theme = currentTheme
+                )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedButton(
                     onClick = { intentToDelete = true },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                    shape = MaterialTheme.shapes.medium
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = null)
+                    Icon(Icons.Rounded.Delete, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Delete Channel")
                 }

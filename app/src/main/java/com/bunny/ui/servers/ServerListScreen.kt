@@ -5,18 +5,21 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Group
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -24,6 +27,8 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.bunny.domain.model.Server
 import com.bunny.ui.common.ConfirmDialog
+import com.bunny.ui.common.SectionHeader
+import com.bunny.util.ThemeUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,8 +47,9 @@ fun ServerListScreen(
     var joinMessage by remember { mutableStateOf<String?>(null) }
     var createdServer by remember { mutableStateOf<Server?>(null) }
 
-    // Crie o SnackbarHostState AQUI, antes do Scaffold
     val snackbarHostState = remember { SnackbarHostState() }
+    val prefs = navController.context.getSharedPreferences(com.bunny.util.Constants.PREFS_NAME, android.content.Context.MODE_PRIVATE)
+    val currentTheme = ThemeUtils.getThemeFromString(prefs.getString(com.bunny.util.Constants.KEY_THEME, "dark"))
 
     LaunchedEffect(joinedServer) {
         joinedServer?.let {
@@ -62,21 +68,43 @@ fun ServerListScreen(
 
     Surface(modifier = modifier.fillMaxSize()) {
         Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 TopAppBar(
-                    title = { Text("Bunny") },
+                    title = {
+                        Column {
+                            Text("Bunny", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            Text(
+                                text = "${servers.size} server${if (servers.size == 1) "" else "s"}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                     actions = {
-                        IconButton(onClick = { showCreateDialog = true }) {
-                            Icon(Icons.Default.Add, contentDescription = "Create")
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceVariant
+                        ) {
+                            IconButton(onClick = { showCreateDialog = true }) {
+                                Icon(Icons.Rounded.Add, contentDescription = "Create", tint = MaterialTheme.colorScheme.primary)
+                            }
                         }
-                        IconButton(onClick = { showJoinDialog = true }) {
-                            Icon(Icons.Default.Public, contentDescription = "Join")
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceVariant
+                        ) {
+                            IconButton(onClick = { showJoinDialog = true }) {
+                                Icon(Icons.Rounded.Group, contentDescription = "Join", tint = MaterialTheme.colorScheme.primary)
+                            }
                         }
+                        Spacer(modifier = Modifier.width(16.dp))
                     }
                 )
             },
             bottomBar = { com.bunny.ui.BunnyBottomNav(navController) },
-            // Passe o estado correto aqui
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { padding ->
 
@@ -91,7 +119,7 @@ fun ServerListScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(24.dp)
+                    .padding(horizontal = 20.dp)
             ) {
                 if (servers.isEmpty() && !isLoading) {
                     Column(
@@ -99,26 +127,46 @@ fun ServerListScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Text("No servers yet", style = MaterialTheme.typography.bodyLarge)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Create or join a server to get started", style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(servers) { server ->
-                        ServerCard(
-                            server = server,
-                            onClick = {
-                                navController.navigate("channels/${server.id}")
-                            },
-                            onSettings = {
-                                navController.navigate("servers/${server.id}/settings")
-                            },
-                            onLeave = {
-                                intentToLeave = server
-                            }
+                        Icon(
+                            imageVector = Icons.Rounded.Group,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text("No servers yet", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "Create or join a server to get started",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(vertical = 16.dp)
+                    ) {
+                        item {
+                            SectionHeader("Your Servers")
+                        }
+                        items(servers) { server ->
+                            ServerCard(
+                                server = server,
+                                currentTheme = currentTheme,
+                                onClick = {
+                                    navController.navigate("channels/${server.id}")
+                                },
+                                onSettings = {
+                                    navController.navigate("servers/${server.id}/settings")
+                                },
+                                onLeave = {
+                                    intentToLeave = server
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
                     }
                 }
             }
@@ -205,17 +253,23 @@ fun ServerListScreen(
 }
 
 @Composable
-fun ServerCard(server: Server, onClick: () -> Unit, onSettings: () -> Unit, onLeave: () -> Unit) {
+fun ServerCard(
+    server: Server,
+    currentTheme: com.bunny.ui.theme.AppTheme,
+    onClick: () -> Unit,
+    onSettings: () -> Unit,
+    onLeave: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(horizontal = 4.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        shape = MaterialTheme.shapes.medium
+            .clickable { onClick() },
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (!server.iconUrl.isNullOrBlank()) {
@@ -223,29 +277,50 @@ fun ServerCard(server: Server, onClick: () -> Unit, onSettings: () -> Unit, onLe
                     model = server.iconUrl,
                     contentDescription = null,
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(10.dp))
+                        .size(52.dp)
+                        .clip(RoundedCornerShape(14.dp))
                         .background(MaterialTheme.colorScheme.primary),
                     contentScale = ContentScale.Crop
                 )
             } else {
-                Icon(
-                    imageVector = Icons.Default.Public,
-                    contentDescription = null,
-                    modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                Box(
+                    modifier = Modifier
+                        .size(52.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(
+                            com.bunny.ui.common.brandGradientBrush(currentTheme)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = server.name.take(1).uppercase(),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = server.name, style = MaterialTheme.typography.titleMedium)
-                Text(text = "Press to open", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(text = server.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(
+                    text = "Open server",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-            IconButton(onClick = onSettings) {
-                Icon(Icons.Default.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.primary)
+            IconButton(
+                onClick = onSettings,
+                modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Icon(Icons.Rounded.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.primary)
             }
-            IconButton(onClick = onLeave) {
-                Icon(Icons.Default.ExitToApp, contentDescription = "Leave", tint = MaterialTheme.colorScheme.error)
+            Spacer(modifier = Modifier.width(4.dp))
+            IconButton(
+                onClick = onLeave,
+                modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f))
+            ) {
+                Icon(Icons.Rounded.Delete, contentDescription = "Leave", tint = MaterialTheme.colorScheme.error)
             }
         }
     }
@@ -256,18 +331,22 @@ fun CreateServerDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
     var name by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Create Server") },
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(24.dp),
+        title = { Text("Create Server", fontWeight = FontWeight.Bold) },
         text = {
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Server Name") },
-                modifier = Modifier.fillMaxWidth()
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp)
             )
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(name) }, enabled = name.isNotBlank()) {
-                Text("Create")
+                Text("Create", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
             }
         },
         dismissButton = {
@@ -281,15 +360,19 @@ fun JoinServerDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit, errorMe
     var code by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Join Server") },
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(24.dp),
+        title = { Text("Join Server", fontWeight = FontWeight.Bold) },
         text = {
             Column {
                 OutlinedTextField(
                     value = code,
                     onValueChange = { code = it },
                     label = { Text("Invite Code") },
+                    singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    isError = errorMessage != null
+                    isError = errorMessage != null,
+                    shape = RoundedCornerShape(16.dp)
                 )
                 errorMessage?.let { msg ->
                     Spacer(modifier = Modifier.height(8.dp))
@@ -299,7 +382,7 @@ fun JoinServerDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit, errorMe
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(code) }, enabled = code.isNotBlank()) {
-                Text("Join")
+                Text("Join", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
             }
         },
         dismissButton = {
@@ -312,7 +395,9 @@ fun JoinServerDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit, errorMe
 fun InviteCodeDialog(server: Server, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Server Created") },
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(24.dp),
+        title = { Text("Server Created", fontWeight = FontWeight.Bold) },
         text = {
             Column {
                 Text("Share this invite code so friends can join ${server.name}:")

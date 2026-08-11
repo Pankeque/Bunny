@@ -1,24 +1,30 @@
 package com.bunny.ui.servers
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bunny.domain.model.Role
 import com.bunny.ui.common.ConfirmDialog
+import com.bunny.ui.common.SectionHeader
+import com.bunny.util.ThemeUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,16 +45,23 @@ fun RoleManagementScreen(navController: NavController, serverId: Int, modifier: 
     Surface(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
-                title = { Text("Roles") },
+                title = { Text("Roles", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
                     }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 actions = {
-                    IconButton(onClick = { showCreateDialog = true }) {
-                        Icon(Icons.Default.PlayArrow, contentDescription = "Create Role")
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        IconButton(onClick = { showCreateDialog = true }) {
+                            Icon(Icons.Rounded.Shield, contentDescription = "Create Role", tint = MaterialTheme.colorScheme.primary)
+                        }
                     }
+                    Spacer(modifier = Modifier.width(16.dp))
                 }
             )
 
@@ -58,17 +71,36 @@ fun RoleManagementScreen(navController: NavController, serverId: Int, modifier: 
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text("No roles yet", style = MaterialTheme.typography.bodyLarge)
+                    Icon(
+                        imageVector = Icons.Rounded.Shield,
+                        contentDescription = null,
+                        modifier = Modifier.size(56.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text("No roles yet", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "Create roles to manage permissions",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
 
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp)
+            ) {
+                item {
+                    SectionHeader("Server Roles")
+                }
                 items(roles) { role ->
                     RoleCard(
                         role = role,
                         onDelete = { roleToDelete = role }
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                 }
             }
         }
@@ -123,31 +155,34 @@ fun RoleManagementScreen(navController: NavController, serverId: Int, modifier: 
 @Composable
 fun RoleCard(role: Role, onDelete: () -> Unit) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        shape = MaterialTheme.shapes.medium
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(40.dp)
+                    .clip(CircleShape)
                     .background(
                         color = androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(role.color)),
-                        shape = MaterialTheme.shapes.small
+                        shape = CircleShape
                     )
             )
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = role.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text(text = role.color, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f))
+            ) {
+                Icon(Icons.Rounded.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
             }
         }
     }
@@ -160,23 +195,27 @@ fun CreateRoleDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Create Role") },
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(24.dp),
+        title = { Text("Create Role", fontWeight = FontWeight.Bold) },
         text = {
             Column {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Role Name") },
+                    singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium
+                    shape = RoundedCornerShape(16.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = color,
                     onValueChange = { color = it },
                     label = { Text("Color (hex)") },
+                    singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium
+                    shape = RoundedCornerShape(16.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Try: #FF0000, #00FF00, #0000FF", style = MaterialTheme.typography.bodySmall)
@@ -184,7 +223,7 @@ fun CreateRoleDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit)
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(name, color) }, enabled = name.isNotBlank() && color.isNotBlank()) {
-                Text("Create")
+                Text("Create", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
             }
         },
         dismissButton = {

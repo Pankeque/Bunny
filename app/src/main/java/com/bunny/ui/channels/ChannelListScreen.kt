@@ -4,20 +4,28 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Tag
+import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.bunny.domain.model.Channel
 import com.bunny.ui.common.ConfirmDialog
+import com.bunny.ui.common.SectionHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,37 +53,79 @@ fun ChannelListScreen(
 
     Surface(modifier = modifier.fillMaxSize()) {
         Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 TopAppBar(
-                    title = { Text(serverName.ifEmpty { "Channels" }) },
-                    actions = {
-                        IconButton(onClick = { showCreateDialog = true }) {
-                            Icon(Icons.Default.Add, contentDescription = "Create")
+                    title = {
+                        Column {
+                            Text(serverName.ifEmpty { "Channels" }, fontWeight = FontWeight.Bold)
+                            Text(
+                                text = "${channels.size} channel${if (channels.size == 1) "" else "s"}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+                    actions = {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceVariant
+                        ) {
+                            IconButton(onClick = { showCreateDialog = true }) {
+                                Icon(Icons.Rounded.Add, contentDescription = "Create", tint = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
                     }
                 )
             },
             bottomBar = { com.bunny.ui.BunnyBottomNav(navController) }
         ) { padding ->
-            Column(modifier = Modifier.padding(padding).padding(24.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 20.dp)
+            ) {
                 if (channels.isEmpty() && !isLoading) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Text("No channels", style = MaterialTheme.typography.bodyLarge)
-                    }
-                }
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(channels) { channel ->
-                        ChannelCard(
-                            channel = channel,
-                            onClick = { navController.navigate("chat/${channel.id}") },
-                            onSettings = { navController.navigate("channels/${channel.serverId}/${channel.id}/settings") },
-                            onDelete = { channelToDelete = channel }
+                        Icon(
+                            imageVector = Icons.Rounded.Tag,
+                            contentDescription = null,
+                            modifier = Modifier.size(56.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text("No channels", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            "Create a channel to start chatting",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(vertical = 16.dp)
+                    ) {
+                        item {
+                            SectionHeader("Channels")
+                        }
+                        items(channels) { channel ->
+                            ChannelCard(
+                                channel = channel,
+                                onClick = { navController.navigate("chat/${channel.id}") },
+                                onSettings = { navController.navigate("channels/${channel.serverId}/${channel.id}/settings") },
+                                onDelete = { channelToDelete = channel }
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
                     }
                 }
             }
@@ -128,38 +178,58 @@ fun ChannelListScreen(
 
 @Composable
 fun ChannelCard(channel: Channel, onClick: () -> Unit, onSettings: () -> Unit, onDelete: () -> Unit) {
+    val isVoice = channel.type == "voice"
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(horizontal = 4.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        shape = MaterialTheme.shapes.medium
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.width(16.dp))
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = if (isVoice) Icons.Rounded.Videocam else Icons.Rounded.Tag,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+            Spacer(modifier = Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "# ${channel.name}", style = MaterialTheme.typography.titleMedium)
                 Text(
-                    text = "${channel.type} channel • ${channel.createdAt}",
+                    text = channel.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = if (isVoice) "Voice channel" else "Text channel",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            IconButton(onClick = onSettings) {
-                Icon(Icons.Default.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.primary)
+            IconButton(
+                onClick = onSettings,
+                modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Icon(Icons.Rounded.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.primary)
             }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+            Spacer(modifier = Modifier.width(4.dp))
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f))
+            ) {
+                Icon(Icons.Rounded.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
             }
         }
     }
@@ -172,14 +242,18 @@ fun CreateChannelDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Un
     var type by remember { mutableStateOf("text") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Create Channel") },
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(24.dp),
+        title = { Text("Create Channel", fontWeight = FontWeight.Bold) },
         text = {
             Column {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Channel Name") },
-                    modifier = Modifier.fillMaxWidth()
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
@@ -191,6 +265,13 @@ fun CreateChannelDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Un
                             selected = type == t,
                             onClick = { type = t },
                             label = { Text(t.replaceFirstChar { it.uppercase() }) },
+                            leadingIcon = {
+                                Icon(
+                                    if (t == "voice") Icons.Rounded.Videocam else Icons.Rounded.Tag,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            },
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -199,7 +280,7 @@ fun CreateChannelDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Un
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(name, type) }, enabled = name.isNotBlank()) {
-                Text("Create")
+                Text("Create", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
             }
         },
         dismissButton = {

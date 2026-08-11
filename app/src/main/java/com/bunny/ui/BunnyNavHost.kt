@@ -7,10 +7,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -34,10 +34,10 @@ import com.bunny.ui.servers.ServerListScreen
 import com.bunny.ui.servers.ServerSettingScreen
 
 sealed class Screen(val route: String, val title: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    object Servers : Screen("servers", "Servers", Icons.Default.Home)
-    object Channels : Screen("channels/{serverId}", "Channels", Icons.Default.Email)
-    object Chat : Screen("chat/{channelId}", "Chat", Icons.Default.Email)
-    object Profile : Screen("profile", "Profile", Icons.Default.Person)
+    object Servers : Screen("servers", "Servers", Icons.Rounded.Home)
+    object Channels : Screen("channels/{serverId}", "Channels", Icons.Rounded.Email)
+    object Chat : Screen("chat/{channelId}", "Chat", Icons.Rounded.Email)
+    object Profile : Screen("profile", "Profile", Icons.Rounded.Person)
 }
 
 @Composable
@@ -139,11 +139,19 @@ fun MasterDetailLayout(
     val currentRoute = backStackEntry?.destination?.route ?: ""
 
     Row(modifier = Modifier.fillMaxSize()) {
-        NavigationRail {
+        NavigationRail(
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            Spacer(modifier = Modifier.height(8.dp))
             NavigationRailItem(
-                icon = { Icon(Icons.Default.Home, contentDescription = "Servers") },
+                icon = { Icon(Icons.Rounded.Home, contentDescription = "Servers") },
                 label = { Text("Servers", style = MaterialTheme.typography.labelMedium) },
                 selected = currentRoute == "servers",
+                colors = NavigationRailItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                ),
                 onClick = {
                     navController.navigate("servers") {
                         popUpTo(navController.graph.startDestinationId)
@@ -152,9 +160,14 @@ fun MasterDetailLayout(
                 }
             )
             NavigationRailItem(
-                icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
+                icon = { Icon(Icons.Rounded.Person, contentDescription = "Profile") },
                 label = { Text("Profile", style = MaterialTheme.typography.labelMedium) },
                 selected = currentRoute == "profile",
+                colors = NavigationRailItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                ),
                 onClick = {
                     navController.navigate("profile") {
                         popUpTo(navController.graph.startDestinationId)
@@ -204,7 +217,10 @@ fun MasterDetailLayout(
 @Composable
 fun BunnyBottomNav(navController: NavHostController) {
     val items = listOf(Screen.Servers, Screen.Profile)
-    NavigationBar {
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp
+    ) {
         val navBackStackEntry = navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry.value?.destination
         items.forEach { screen ->
@@ -212,6 +228,13 @@ fun BunnyBottomNav(navController: NavHostController) {
                 icon = { Icon(screen.icon, contentDescription = screen.title) },
                 label = { Text(screen.title, style = MaterialTheme.typography.labelMedium) },
                 selected = currentDestination?.route == screen.route,
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
                 onClick = {
                     navController.navigate(screen.route) {
                         popUpTo(navController.graph.startDestinationId)

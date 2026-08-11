@@ -7,28 +7,35 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.CameraAlt
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.bunny.ui.common.ConfirmDialog
+import com.bunny.ui.common.GradientButton
+import com.bunny.ui.common.SectionHeader
+import com.bunny.ui.common.brandGradientBrush
+import com.bunny.util.Constants
 import com.bunny.util.ImageUtils
+import com.bunny.util.ThemeUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,6 +53,8 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var inviteMessage by remember { mutableStateOf<String?>(null) }
     var intentToDelete by remember { mutableStateOf<Boolean>(false) }
+    val prefs = navController.context.getSharedPreferences(Constants.PREFS_NAME, android.content.Context.MODE_PRIVATE)
+    val currentTheme = ThemeUtils.getThemeFromString(prefs.getString(Constants.KEY_THEME, "dark"))
 
     val iconPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
@@ -75,35 +84,30 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
     Surface(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
-                title = { Text("Server Settings") },
+                title = { Text("Server Settings", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(32.dp),
+                    .verticalScroll(androidx.compose.foundation.rememberScrollState())
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 8.dp, bottom = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                OutlinedTextField(
-                    value = serverName,
-                    onValueChange = { serverName = it },
-                    label = { Text("Server Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
+                SectionHeader("Server Icon", modifier = Modifier.fillMaxWidth())
 
                 Box(
                     modifier = Modifier
-                        .size(80.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(MaterialTheme.colorScheme.primary),
+                        .size(96.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(brandGradientBrush(currentTheme)),
                     contentAlignment = Alignment.Center
                 ) {
                     val displayModel: Any = iconUri ?: serverIcon
@@ -115,73 +119,112 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                             contentScale = ContentScale.Crop
                         )
                     } else {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = null,
-                            modifier = Modifier.size(40.dp),
-                            tint = MaterialTheme.colorScheme.onPrimary
+                        Text(
+                            text = serverName.take(1).uppercase().ifBlank { "S" },
+                            style = MaterialTheme.typography.displaySmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                OutlinedButton(onClick = { iconPicker.launch("image/*") }) {
-                    Icon(Icons.Default.CameraAlt, contentDescription = null)
+                OutlinedButton(
+                    onClick = { iconPicker.launch("image/*") },
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(Icons.Rounded.CameraAlt, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Change Icon")
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
-                if (inviteCode.isNotBlank()) {
-                    Text("Invite Code", style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth())
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                SectionHeader("General", modifier = Modifier.fillMaxWidth())
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Text("Server Name", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
-                            value = inviteCode,
-                            onValueChange = {},
-                            readOnly = true,
-                            modifier = Modifier.weight(1f),
-                            shape = MaterialTheme.shapes.medium
-                        )
-                        IconButton(onClick = {
-                            clipboardManager.setText(AnnotatedString(inviteCode))
-                            inviteMessage = "Invite code copied"
-                        }) {
-                            Icon(Icons.Default.ContentCopy, contentDescription = "Copy Invite")
-                        }
-                    }
-                    inviteMessage?.let { msg ->
-                        Text(
-                            text = msg,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
+                            value = serverName,
+                            onValueChange = { serverName = it },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp)
                         )
                     }
-                    TextButton(
-                        onClick = {
-                            viewModel.regenerateInviteCode(serverId) { result ->
-                                result.onSuccess {
-                                    inviteCode = it
-                                    inviteMessage = "New invite code generated"
-                                }.onFailure { e ->
-                                    errorMessage = e.message
-                                }
-                            }
-                        }
-                    ) {
-                        Icon(Icons.Default.Refresh, contentDescription = null)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Regenerate Invite Code")
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                Button(
+                if (inviteCode.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(28.dp))
+                    SectionHeader("Invite", modifier = Modifier.fillMaxWidth())
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(18.dp)) {
+                            Text("Invite Code", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                OutlinedTextField(
+                                    value = inviteCode,
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                IconButton(
+                                    onClick = {
+                                        clipboardManager.setText(AnnotatedString(inviteCode))
+                                        inviteMessage = "Invite code copied"
+                                    },
+                                    modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer)
+                                ) {
+                                    Icon(Icons.Rounded.ContentCopy, contentDescription = "Copy Invite", tint = MaterialTheme.colorScheme.primary)
+                                }
+                            }
+                            inviteMessage?.let { msg ->
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = msg,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            TextButton(
+                                onClick = {
+                                    viewModel.regenerateInviteCode(serverId) { result ->
+                                        result.onSuccess {
+                                            inviteCode = it
+                                            inviteMessage = "New invite code generated"
+                                        }.onFailure { e ->
+                                            errorMessage = e.message
+                                        }
+                                    }
+                                }
+                            ) {
+                                Icon(Icons.Rounded.Refresh, contentDescription = null)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Regenerate Invite Code")
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                GradientButton(
                     onClick = {
                         isLoading = true
                         if (iconBytes != null && iconMime != null) {
@@ -207,38 +250,32 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                     },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !isLoading && serverName.isNotBlank(),
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary)
-                    } else {
-                        Icon(Icons.Default.Check, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Save")
-                    }
-                }
+                    icon = Icons.Rounded.Check,
+                    text = if (isLoading) "Saving…" else "Save Changes",
+                    theme = currentTheme
+                )
 
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 OutlinedButton(
                     onClick = { navController.navigate("servers/$serverId/roles") },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Default.Edit, contentDescription = null)
+                    Icon(Icons.Rounded.Shield, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Manage Roles")
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedButton(
                     onClick = { intentToDelete = true },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                    shape = MaterialTheme.shapes.medium
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = null)
+                    Icon(Icons.Rounded.Delete, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Delete Server")
                 }
