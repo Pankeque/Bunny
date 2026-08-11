@@ -72,7 +72,7 @@ fun ChannelListScreen(
                         ChannelCard(
                             channel = channel,
                             onClick = { navController.navigate("chat/${channel.id}") },
-                            onSettings = { navController.navigate("channels/${channel.id}/settings") },
+                            onSettings = { navController.navigate("channels/${channel.serverId}/${channel.id}/settings") },
                             onDelete = { channelToDelete = channel }
                         )
                         Spacer(modifier = Modifier.height(4.dp))
@@ -85,8 +85,8 @@ fun ChannelListScreen(
     if (showCreateDialog) {
         CreateChannelDialog(
             onDismiss = { showCreateDialog = false },
-            onConfirm = { name ->
-                viewModel.createChannel(serverId, name, "text") { result ->
+            onConfirm = { name, type ->
+                viewModel.createChannel(serverId, name, type) { result ->
                     showCreateDialog = false
                     result.onSuccess {
                         viewModel.loadChannels(serverId) { r -> r.onSuccess { channels = it } }
@@ -166,21 +166,38 @@ fun ChannelCard(channel: Channel, onClick: () -> Unit, onSettings: () -> Unit, o
 }
 
 @Composable
-fun CreateChannelDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+fun CreateChannelDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit) {
     var name by remember { mutableStateOf("") }
+    var type by remember { mutableStateOf("text") }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Create Channel") },
         text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Channel Name") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            Column {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Channel Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf("text", "voice").forEach { t ->
+                        FilterChip(
+                            selected = type == t,
+                            onClick = { type = t },
+                            label = { Text(t.replaceFirstChar { it.uppercase() }) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(name) }, enabled = name.isNotBlank()) {
+            TextButton(onClick = { onConfirm(name, type) }, enabled = name.isNotBlank()) {
                 Text("Create")
             }
         },

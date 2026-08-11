@@ -33,7 +33,7 @@ class ChannelViewModel @Inject constructor(
 
     fun createChannel(serverId: Int, name: String, type: String = "text", onResult: (Result<Channel>) -> Unit = {}) {
         viewModelScope.launch {
-            val result = channelRepository.createChannel(name, serverId)
+            val result = channelRepository.createChannel(name, serverId, type)
             if (result.isSuccess) {
                 loadChannels(serverId)
             }

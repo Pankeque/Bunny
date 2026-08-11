@@ -71,9 +71,10 @@ fun PortraitNavHost(navController: NavHostController) {
             val serverId = backStackEntry.arguments?.getString("serverId")?.toIntOrNull() ?: 0
             ServerSettingScreen(navController, serverId, Modifier.fillMaxSize())
         }
-        composable("channels/{channelId}/settings") { backStackEntry ->
+        composable("channels/{serverId}/{channelId}/settings") { backStackEntry ->
+            val serverId = backStackEntry.arguments?.getString("serverId")?.toIntOrNull() ?: 0
             val channelId = backStackEntry.arguments?.getString("channelId")?.toIntOrNull() ?: 0
-            ChannelSettingScreen(navController, channelId, Modifier.fillMaxSize())
+            ChannelSettingScreen(navController, serverId, channelId, Modifier.fillMaxSize())
         }
         composable("servers/{serverId}/roles") { backStackEntry ->
             val serverId = backStackEntry.arguments?.getString("serverId")?.toIntOrNull() ?: 0
@@ -116,9 +117,10 @@ fun MasterDetailNavHost(navController: NavHostController) {
             val serverId = backStackEntry.arguments?.getString("serverId")?.toIntOrNull() ?: 0
             ServerSettingScreen(navController, serverId, Modifier.fillMaxSize())
         }
-        composable("channels/{channelId}/settings") { backStackEntry ->
+        composable("channels/{serverId}/{channelId}/settings") { backStackEntry ->
+            val serverId = backStackEntry.arguments?.getString("serverId")?.toIntOrNull() ?: 0
             val channelId = backStackEntry.arguments?.getString("channelId")?.toIntOrNull() ?: 0
-            ChannelSettingScreen(navController, channelId, Modifier.fillMaxSize())
+            ChannelSettingScreen(navController, serverId, channelId, Modifier.fillMaxSize())
         }
         composable("servers/{serverId}/roles") { backStackEntry ->
             val serverId = backStackEntry.arguments?.getString("serverId")?.toIntOrNull() ?: 0
@@ -176,8 +178,10 @@ fun MasterDetailLayout(
                     RoleManagementScreen(navController, serverId, Modifier.fillMaxSize())
                 }
                 currentRoute.startsWith("channels/") && currentRoute.contains("/settings") -> {
-                    val channelId = currentRoute.split("/")[1].toIntOrNull() ?: 0
-                    ChannelSettingScreen(navController, channelId, Modifier.fillMaxSize())
+                    val parts = currentRoute.split("/")
+                    val serverId = parts.getOrNull(1)?.toIntOrNull() ?: 0
+                    val channelId = parts.getOrNull(2)?.toIntOrNull() ?: 0
+                    ChannelSettingScreen(navController, serverId, channelId, Modifier.fillMaxSize())
                 }
                 currentRoute.startsWith("chat/") -> {
                     val channelId = currentRoute.split("/")[1].toIntOrNull() ?: 0

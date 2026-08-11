@@ -22,7 +22,7 @@ data class ChannelDto(
     @SerializedName("id") val id: Int,
     @SerializedName("server_id") val serverId: Int,
     @SerializedName("name") val name: String,
-    @SerializedName("type") val type: String,
+    @SerializedName("type") val type: String? = "text",
     @SerializedName("created_at") val createdAt: String
 )
 

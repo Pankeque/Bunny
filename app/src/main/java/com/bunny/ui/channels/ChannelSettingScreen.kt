@@ -17,7 +17,7 @@ import com.bunny.ui.common.ConfirmDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChannelSettingScreen(navController: NavController, channelId: Int, modifier: Modifier = Modifier) {
+fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId: Int, modifier: Modifier = Modifier) {
     val viewModel: ChannelViewModel = hiltViewModel()
     var channelName by remember { mutableStateOf("") }
     var channelType by remember { mutableStateOf("text") }
@@ -25,8 +25,8 @@ fun ChannelSettingScreen(navController: NavController, channelId: Int, modifier:
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var intentToDelete by remember { mutableStateOf<Boolean>(false) }
 
-    LaunchedEffect(channelId) {
-        viewModel.loadChannels(0) { result ->
+    LaunchedEffect(serverId, channelId) {
+        viewModel.loadChannels(serverId) { result ->
             result.onSuccess { channels ->
                 channels.find { it.id == channelId }?.let {
                     channelName = it.name
@@ -119,7 +119,7 @@ fun ChannelSettingScreen(navController: NavController, channelId: Int, modifier:
         }
     }
 
-    intentToDelete?.let {
+    if (intentToDelete) {
         ConfirmDialog(
             title = "Delete Channel",
             message = "Are you sure you want to delete this channel? All messages will be permanently lost.",
@@ -129,8 +129,8 @@ fun ChannelSettingScreen(navController: NavController, channelId: Int, modifier:
                 viewModel.deleteChannel(channelId) { result ->
                     isLoading = false
                     result.onSuccess {
-                        navController.navigate("servers") {
-                            popUpTo("servers")
+                        navController.navigate("channels/$serverId") {
+                            popUpTo("channels/$serverId") { inclusive = true }
                         }
                     }.onFailure { e ->
                         errorMessage = e.message ?: "Failed to delete channel"

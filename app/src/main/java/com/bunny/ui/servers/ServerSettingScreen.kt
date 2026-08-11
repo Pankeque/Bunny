@@ -181,7 +181,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
         }
     }
 
-    intentToDelete?.let {
+    if (intentToDelete) {
         ConfirmDialog(
             title = "Delete Server",
             message = "Are you sure you want to delete this server? All channels, messages, and members will be permanently lost.",
