@@ -218,7 +218,7 @@ fun ServerCard(server: Server, onClick: () -> Unit, onSettings: () -> Unit, onLe
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (server.iconUrl.isNotBlank()) {
+            if (!server.iconUrl.isNullOrBlank()) {
                 AsyncImage(
                     model = server.iconUrl,
                     contentDescription = null,
