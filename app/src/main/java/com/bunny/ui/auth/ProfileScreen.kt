@@ -1,6 +1,8 @@
 package com.bunny.ui.auth
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
@@ -14,9 +16,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.bunny.ui.common.ConfirmDialog
 import com.bunny.util.Constants
 
@@ -25,10 +30,12 @@ fun ProfileScreen(navController: NavController, modifier: Modifier = Modifier) {
     val viewModel: AuthViewModel = hiltViewModel()
     var showLogoutDialog by remember { mutableStateOf(false) }
     var username by remember { mutableStateOf("") }
+    var avatarUrl by remember { mutableStateOf("") }
 
     val prefs = navController.context.getSharedPreferences(Constants.PREFS_NAME, android.content.Context.MODE_PRIVATE)
     LaunchedEffect(Unit) {
         username = prefs.getString(Constants.KEY_USERNAME, "") ?: ""
+        avatarUrl = prefs.getString(Constants.KEY_AVATAR_URL, "") ?: ""
     }
 
     Surface(modifier = modifier.fillMaxSize()) {
@@ -39,12 +46,24 @@ fun ProfileScreen(navController: NavController, modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = null,
-                modifier = Modifier.size(72.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
+            if (avatarUrl.isNotBlank()) {
+                AsyncImage(
+                    model = avatarUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(72.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
             Spacer(modifier = Modifier.height(20.dp))
             Text(text = username, style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(40.dp))

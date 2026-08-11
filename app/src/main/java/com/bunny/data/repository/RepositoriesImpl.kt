@@ -40,6 +40,9 @@ import com.bunny.domain.repository.UserRepository
 import com.bunny.domain.repository.RoleRepository
 import com.bunny.util.Constants
 import kotlinx.coroutines.flow.map
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -234,6 +237,37 @@ class ServerRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun uploadServerIcon(serverId: Int, bytes: ByteArray, mimeType: String): Result<Server> {
+        return try {
+            val part = MultipartBody.Part.createFormData(
+                "file",
+                "icon",
+                bytes.toRequestBody(mimeType.toMediaType())
+            )
+            val response = api.uploadServerIcon(serverId, part)
+            if (response.isSuccessful) {
+                val server = response.body()!!.toDomain()
+                serverDao.insertServers(
+                    listOf(
+                        com.bunny.data.local.entity.ServerEntity(
+                            id = server.id,
+                            name = server.name,
+                            iconUrl = server.iconUrl,
+                            ownerId = server.ownerId,
+                            inviteCode = server.inviteCode,
+                            createdAt = server.createdAt
+                        )
+                    )
+                )
+                Result.success(server)
+            } else {
+                Result.failure(Exception(response.errorMessage("Failed to upload server icon")))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun regenerateInviteCode(serverId: Int): Result<String> {
         return try {
             val response = api.regenerateInviteCode(serverId)
@@ -402,6 +436,37 @@ class UserRepositoryImpl @Inject constructor(
             } else {
                 val errorBody = response.errorBody()?.string()
                 Result.failure(Exception(errorBody?.takeIf { it.isNotBlank() } ?: "Failed to update profile"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun uploadAvatar(bytes: ByteArray, mimeType: String): Result<User> {
+        return try {
+            val part = MultipartBody.Part.createFormData(
+                "file",
+                "avatar",
+                bytes.toRequestBody(mimeType.toMediaType())
+            )
+            val response = api.uploadAvatar(part)
+            if (response.isSuccessful) {
+                val body = response.body()!!.toDomain()
+                userDao.insertUser(
+                    com.bunny.data.local.entity.UserEntity(
+                        id = body.id,
+                        username = body.username,
+                        avatarUrl = body.avatarUrl,
+                        theme = body.theme
+                    )
+                )
+                prefs.edit()
+                    .putString(Constants.KEY_AVATAR_URL, body.avatarUrl)
+                    .apply()
+                Result.success(body)
+            } else {
+                val errorBody = response.errorBody()?.string()
+                Result.failure(Exception(errorBody?.takeIf { it.isNotBlank() } ?: "Failed to upload avatar"))
             }
         } catch (e: Exception) {
             Result.failure(e)

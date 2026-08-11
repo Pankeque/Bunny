@@ -83,6 +83,13 @@ class ServerViewModel @Inject constructor(
         }
     }
 
+    fun uploadServerIcon(serverId: Int, bytes: ByteArray, mimeType: String, onResult: (Result<com.bunny.domain.model.Server>) -> Unit = {}) {
+        viewModelScope.launch {
+            val result = serverRepository.uploadServerIcon(serverId, bytes, mimeType)
+            onResult(result)
+        }
+    }
+
     fun loadRoles(serverId: Int, onResult: (Result<List<com.bunny.domain.model.Role>>) -> Unit = {}) {
         viewModelScope.launch {
             val result = roleRepository.getRoles(serverId)

@@ -8,6 +8,9 @@ import com.bunny.backend.service.*
 import com.bunny.backend.util.PasswordUtils
 import org.jetbrains.exposed.dao.id.EntityID
 import io.ktor.http.*
+import io.ktor.http.content.PartData
+import io.ktor.http.content.forEachPart
+import io.ktor.utils.io.core.readBytes
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -16,6 +19,34 @@ import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
+
+private const val MAX_IMAGE_BYTES = 5 * 1024 * 1024
+
+private suspend fun ApplicationCall.readImageBytes(): Pair<ByteArray, String>? {
+    if (!(request.headers[HttpHeaders.ContentType]?.startsWith("multipart/form-data") == true)) return null
+    val multipart = receiveMultipart()
+    var bytes: ByteArray? = null
+    var contentType: String? = null
+    try {
+        multipart.forEachPart { part ->
+            if (part is PartData.FileItem) {
+                bytes = part.provider().readBytes()
+                contentType = part.contentType?.toString()
+            }
+            part.dispose()
+        }
+    } catch (e: Exception) {
+        return null
+    }
+    val data = bytes ?: return null
+    if (data.isEmpty() || data.size > MAX_IMAGE_BYTES) return null
+    val mime = contentType?.substringBefore(";") ?: "image/png"
+    if (!mime.startsWith("image/")) return null
+    return data to mime
+}
+
+private fun toImageDataUri(bytes: ByteArray, mime: String): String =
+    "data:$mime;base64," + Base64.getEncoder().encodeToString(bytes)
 
 private fun isMember(serverId: Int, userId: Int): Boolean = transaction {
     ServerMemberEntity.find {
@@ -195,8 +226,12 @@ fun Route.serverRoutes() {
                 if (!ServerService.isOwner(serverId, user.id.value)) {
                     return@post call.respond(HttpStatusCode.Forbidden)
                 }
-                val request = call.receive<UpdateServerRequest>()
-                val server = ServerService.update(serverId, null, request.iconUrl)
+                val image = call.readImageBytes()
+                if (image == null) {
+                    return@post call.respond(HttpStatusCode.BadRequest, "Image file required (max 5MB, image/* only)")
+                }
+                val dataUri = toImageDataUri(image.first, image.second)
+                val server = ServerService.update(serverId, null, dataUri)
                 if (server != null) {
                     call.respond(server.toResponse())
                 } else {
@@ -376,6 +411,21 @@ fun Route.userRoutes() {
                 val user = call.principal<UserEntity>() ?: return@put call.respond(HttpStatusCode.Unauthorized)
                 val request = call.receive<UpdateUserRequest>()
                 val updated = UserService.updateProfile(user.id.value, request.username, request.avatarUrl, request.theme)
+                if (updated != null) {
+                    call.respond(updated.toResponse())
+                } else {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+
+            post("/me/avatar") {
+                val user = call.principal<UserEntity>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
+                val image = call.readImageBytes()
+                if (image == null) {
+                    return@post call.respond(HttpStatusCode.BadRequest, "Image file required (max 5MB, image/* only)")
+                }
+                val dataUri = toImageDataUri(image.first, image.second)
+                val updated = UserService.updateProfile(user.id.value, null, dataUri, null)
                 if (updated != null) {
                     call.respond(updated.toResponse())
                 } else {

@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bunny.data.remote.socket.SocketService
+import com.bunny.domain.model.User
 import com.bunny.domain.repository.AuthRepository
 import com.bunny.domain.repository.UserRepository
 import com.bunny.util.ThemeManager
@@ -93,6 +94,12 @@ class AuthViewModel @Inject constructor(
                 themeManager.setTheme(ThemeUtils.getThemeFromString(theme))
             }
             onResult(result.map { })
+        }
+    }
+
+    fun uploadAvatar(bytes: ByteArray, mimeType: String, onResult: (Result<User>) -> Unit) {
+        viewModelScope.launch {
+            onResult(userRepository.uploadAvatar(bytes, mimeType))
         }
     }
 }

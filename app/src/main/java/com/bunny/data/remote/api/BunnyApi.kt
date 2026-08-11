@@ -1,6 +1,7 @@
 package com.bunny.data.remote.api
 
 import com.bunny.data.remote.dto.*
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -26,11 +27,16 @@ interface BunnyApi {
     @PUT("api/servers/{id}")
     suspend fun updateServer(@Path("id") serverId: Int, @Body request: UpdateServerRequestDto): Response<ServerDto>
 
-    @POST("api/servers/{id}/icon")
-    suspend fun uploadServerIcon(@Path("id") serverId: Int, @Body request: UpdateServerRequestDto): Response<ServerDto>
-
     @POST("api/servers/{id}/regenerate-invite")
     suspend fun regenerateInviteCode(@Path("id") serverId: Int): Response<Map<String, String>>
+
+    @Multipart
+    @POST("api/servers/{id}/icon")
+    suspend fun uploadServerIcon(@Path("id") serverId: Int, @Part file: MultipartBody.Part): Response<ServerDto>
+
+    @Multipart
+    @POST("api/users/me/avatar")
+    suspend fun uploadAvatar(@Part file: MultipartBody.Part): Response<UserDto>
 
     @POST("api/servers/join")
     suspend fun joinServer(@Body request: JoinServerRequestDto): Response<ServerDto>

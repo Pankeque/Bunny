@@ -1,5 +1,8 @@
 package com.bunny.ui.auth
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -7,7 +10,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -24,14 +27,18 @@ import coil.compose.AsyncImage
 import com.bunny.ui.theme.AppTheme
 import com.bunny.ui.theme.BunnyTheme
 import com.bunny.util.Constants
-import java.net.URI
+import com.bunny.util.ImageUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifier) {
     val viewModel: AuthViewModel = hiltViewModel()
+    val context = LocalContext.current
     var username by remember { mutableStateOf("") }
     var avatarUrl by remember { mutableStateOf("") }
+    var avatarBytes by remember { mutableStateOf<ByteArray?>(null) }
+    var avatarMime by remember { mutableStateOf<String?>(null) }
+    var avatarUri by remember { mutableStateOf<Uri?>(null) }
     var selectedTheme by remember { mutableStateOf(AppTheme.DARK) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -44,6 +51,20 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
         avatarUrl = prefs.getString(Constants.KEY_AVATAR_URL, "") ?: ""
         val themeStr = prefs.getString(Constants.KEY_THEME, "dark")
         selectedTheme = com.bunny.util.ThemeUtils.getThemeFromString(themeStr)
+    }
+
+    val avatarPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            try {
+                val (bytes, mime) = ImageUtils.prepareImage(context, uri)
+                avatarBytes = bytes
+                avatarMime = mime
+                avatarUri = uri
+                avatarError = null
+            } catch (e: Exception) {
+                avatarError = "Could not load image"
+            }
+        }
     }
 
     BunnyTheme(theme = selectedTheme) {
@@ -71,9 +92,10 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
                             .background(MaterialTheme.colorScheme.primary),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (avatarUrl.isNotBlank()) {
+                        val displayModel: Any = avatarUri ?: avatarUrl
+                        if (avatarUri != null || avatarUrl.isNotBlank()) {
                             AsyncImage(
-                                model = avatarUrl,
+                                model = displayModel,
                                 contentDescription = null,
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
@@ -88,6 +110,16 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedButton(onClick = { avatarPicker.launch("image/*") }) {
+                        Text("Change Avatar")
+                    }
+                    avatarError?.let { err ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(err, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    }
+
                     Spacer(modifier = Modifier.height(24.dp))
 
                     OutlinedTextField(
@@ -97,18 +129,6 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
                         modifier = Modifier.fillMaxWidth(),
                         isError = usernameError != null,
                         supportingText = usernameError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } }
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    OutlinedTextField(
-                        value = avatarUrl,
-                        onValueChange = { avatarUrl = it; avatarError = null },
-                        label = { Text("Avatar URL") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = MaterialTheme.shapes.medium,
-                        isError = avatarError != null,
-                        supportingText = avatarError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } }
                     )
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -160,22 +180,33 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
                                 usernameError = "Username must be at most 50 characters"
                                 hasError = true
                             }
-                            if (avatarUrl.isNotBlank()) {
-                                try {
-                                    java.net.URI(avatarUrl)
-                                } catch (e: Exception) {
-                                    avatarError = "Invalid URL format"
-                                    hasError = true
-                                }
-                            }
                             if (hasError) return@Button
                             isLoading = true
-                            viewModel.updateProfile(username, avatarUrl, selectedTheme.name.lowercase()) { result ->
-                                isLoading = false
-                                result.onSuccess {
-                                    navController.popBackStack()
-                                }.onFailure { e ->
-                                    errorMessage = e.message
+                            val theme = selectedTheme.name.lowercase()
+                            if (avatarBytes != null && avatarMime != null) {
+                                viewModel.uploadAvatar(avatarBytes!!, avatarMime!!) { avatarResult ->
+                                    avatarResult.onSuccess {
+                                        viewModel.updateProfile(username, null, theme) { result ->
+                                            isLoading = false
+                                            result.onSuccess {
+                                                navController.popBackStack()
+                                            }.onFailure { e ->
+                                                errorMessage = e.message
+                                            }
+                                        }
+                                    }.onFailure { e ->
+                                        isLoading = false
+                                        errorMessage = e.message
+                                    }
+                                }
+                            } else {
+                                viewModel.updateProfile(username, null, theme) { result ->
+                                    isLoading = false
+                                    result.onSuccess {
+                                        navController.popBackStack()
+                                    }.onFailure { e ->
+                                        errorMessage = e.message
+                                    }
                                 }
                             }
                         },

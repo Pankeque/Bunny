@@ -14,6 +14,7 @@ interface ServerRepository {
     suspend fun createServer(name: String, iconUrl: String?): Result<Server>
     suspend fun deleteServer(serverId: Int): Result<Unit>
     suspend fun updateServer(serverId: Int, name: String?, iconUrl: String?): Result<Server>
+    suspend fun uploadServerIcon(serverId: Int, bytes: ByteArray, mimeType: String): Result<Server>
     suspend fun joinServer(inviteCode: String): Result<Server>
     suspend fun leaveServer(serverId: Int): Result<Unit>
     suspend fun regenerateInviteCode(serverId: Int): Result<String>
@@ -33,6 +34,7 @@ interface MessageRepository {
 
 interface UserRepository {
     suspend fun updateProfile(username: String?, avatarUrl: String?, theme: String?): Result<User>
+    suspend fun uploadAvatar(bytes: ByteArray, mimeType: String): Result<User>
     suspend fun getCurrentUser(userId: Int): Result<User?>
 }
 
