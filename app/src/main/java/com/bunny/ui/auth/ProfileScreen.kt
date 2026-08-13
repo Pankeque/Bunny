@@ -1,6 +1,8 @@
 package com.bunny.ui.auth
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -205,8 +207,8 @@ fun ProfileScreen(navController: NavController, modifier: Modifier = Modifier) {
 @Composable
 private fun Modifier.clickableWithoutIndication(onClick: () -> Unit): Modifier =
     this.then(
-        androidx.compose.foundation.clickable(
-            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+        clickable(
+            interactionSource = remember { MutableInteractionSource() },
             indication = null,
             onClick = onClick
         )

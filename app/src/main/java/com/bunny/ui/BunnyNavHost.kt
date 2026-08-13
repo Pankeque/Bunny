@@ -18,7 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -147,7 +147,7 @@ fun BunnyNavHost() {
 }
 
 @Composable
-fun BunnyBottomNav(navController: NavHostController) {
+fun BunnyBottomNav(navController: NavController) {
     val items = listOf(Screen.Servers, Screen.Messages, Screen.Profile)
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface,
