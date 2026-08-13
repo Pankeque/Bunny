@@ -7,13 +7,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.CameraAlt
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.ContentCopy
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.Shield
+import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.CameraAlt
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -87,7 +87,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                 title = { Text("Server Settings", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
@@ -134,7 +134,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                     onClick = { iconPicker.launch("image/*") },
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Rounded.CameraAlt, contentDescription = null)
+                    Icon(Icons.Outlined.CameraAlt, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Change Icon")
                 }
@@ -191,7 +191,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                                     },
                                     modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer)
                                 ) {
-                                    Icon(Icons.Rounded.ContentCopy, contentDescription = "Copy Invite", tint = MaterialTheme.colorScheme.primary)
+                                    Icon(Icons.Outlined.ContentCopy, contentDescription = "Copy Invite", tint = MaterialTheme.colorScheme.primary)
                                 }
                             }
                             inviteMessage?.let { msg ->
@@ -214,7 +214,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                                     }
                                 }
                             ) {
-                                Icon(Icons.Rounded.Refresh, contentDescription = null)
+                                Icon(Icons.Outlined.Refresh, contentDescription = null)
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text("Regenerate Invite Code")
                             }
@@ -250,7 +250,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                     },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !isLoading && serverName.isNotBlank(),
-                    icon = Icons.Rounded.Check,
+                    icon = Icons.Outlined.Check,
                     text = if (isLoading) "Saving…" else "Save Changes",
                     theme = currentTheme
                 )
@@ -262,7 +262,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Rounded.Shield, contentDescription = null)
+                    Icon(Icons.Outlined.Shield, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Manage Roles")
                 }
@@ -275,7 +275,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Rounded.Delete, contentDescription = null)
+                    Icon(Icons.Outlined.Delete, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Delete Server")
                 }

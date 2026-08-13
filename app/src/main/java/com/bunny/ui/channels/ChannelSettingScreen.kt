@@ -5,11 +5,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Tag
-import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Tag
+import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -53,7 +53,7 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
                 title = { Text("Channel Settings", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
@@ -99,7 +99,7 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
                                     label = { Text(type.replaceFirstChar { it.uppercase() }) },
                                     leadingIcon = {
                                         Icon(
-                                            if (type == "voice") Icons.Rounded.Videocam else Icons.Rounded.Tag,
+                                            if (type == "voice") Icons.Outlined.Videocam else Icons.Outlined.Tag,
                                             contentDescription = null,
                                             modifier = Modifier.size(16.dp)
                                         )
@@ -124,7 +124,7 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
                     },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !isLoading && channelName.isNotBlank(),
-                    icon = Icons.Rounded.Check,
+                    icon = Icons.Outlined.Check,
                     text = if (isLoading) "Saving…" else "Save Changes",
                     theme = currentTheme
                 )
@@ -137,7 +137,7 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Rounded.Delete, contentDescription = null)
+                    Icon(Icons.Outlined.Delete, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Delete Channel")
                 }

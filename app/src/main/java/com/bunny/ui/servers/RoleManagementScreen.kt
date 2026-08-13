@@ -7,9 +7,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Shield
+import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,7 +24,6 @@ import androidx.navigation.NavController
 import com.bunny.domain.model.Role
 import com.bunny.ui.common.ConfirmDialog
 import com.bunny.ui.common.SectionHeader
-import com.bunny.util.ThemeUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +47,7 @@ fun RoleManagementScreen(navController: NavController, serverId: Int, modifier: 
                 title = { Text("Roles", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
@@ -58,7 +57,7 @@ fun RoleManagementScreen(navController: NavController, serverId: Int, modifier: 
                         color = MaterialTheme.colorScheme.primaryContainer
                     ) {
                         IconButton(onClick = { showCreateDialog = true }) {
-                            Icon(Icons.Rounded.Shield, contentDescription = "Create Role", tint = MaterialTheme.colorScheme.primary)
+                            Icon(Icons.Outlined.Shield, contentDescription = "Create Role", tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                     Spacer(modifier = Modifier.width(16.dp))
@@ -72,7 +71,7 @@ fun RoleManagementScreen(navController: NavController, serverId: Int, modifier: 
                     verticalArrangement = Arrangement.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.Shield,
+                        imageVector = Icons.Outlined.Shield,
                         contentDescription = null,
                         modifier = Modifier.size(56.dp),
                         tint = MaterialTheme.colorScheme.primary
@@ -182,7 +181,7 @@ fun RoleCard(role: Role, onDelete: () -> Unit) {
                 onClick = onDelete,
                 modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f))
             ) {
-                Icon(Icons.Rounded.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                Icon(Icons.Outlined.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
             }
         }
     }

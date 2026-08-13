@@ -8,26 +8,27 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Group
-import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
 import com.bunny.domain.model.Server
+import com.bunny.ui.common.BreathingGradientBackground
 import com.bunny.ui.common.ConfirmDialog
 import com.bunny.ui.common.SectionHeader
+import com.bunny.ui.common.ShimmerBox
+import com.bunny.ui.common.UnreadDot
+import com.bunny.ui.common.UserAvatar
 import com.bunny.util.ThemeUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,7 +42,7 @@ fun ServerListScreen(
     var showJoinDialog by remember { mutableStateOf(false) }
     var intentToLeave by remember { mutableStateOf<Server?>(null) }
     var servers by remember { mutableStateOf<List<Server>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var joinedServer by remember { mutableStateOf<Server?>(null) }
     var joinMessage by remember { mutableStateOf<String?>(null) }
@@ -51,18 +52,12 @@ fun ServerListScreen(
     val prefs = navController.context.getSharedPreferences(com.bunny.util.Constants.PREFS_NAME, android.content.Context.MODE_PRIVATE)
     val currentTheme = ThemeUtils.getThemeFromString(prefs.getString(com.bunny.util.Constants.KEY_THEME, "dark"))
 
-    LaunchedEffect(joinedServer) {
-        joinedServer?.let {
-            joinMessage = "Joined ${it.name}"
-            joinedServer = null
-        }
-    }
-
     LaunchedEffect(Unit) {
         viewModel.loadServers { result ->
             result.onSuccess { servers = it }.onFailure { e ->
                 errorMessage = e.message
             }
+            isLoading = false
         }
     }
 
@@ -73,9 +68,10 @@ fun ServerListScreen(
                 TopAppBar(
                     title = {
                         Column {
-                            Text("Bunny", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            Text("Bunny", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
                             Text(
-                                text = "${servers.size} server${if (servers.size == 1) "" else "s"}",
+                                text = if (isLoading) "Loading…"
+                                else "${servers.size} server${if (servers.size == 1) "" else "s"}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -88,7 +84,7 @@ fun ServerListScreen(
                             color = MaterialTheme.colorScheme.surfaceVariant
                         ) {
                             IconButton(onClick = { showCreateDialog = true }) {
-                                Icon(Icons.Rounded.Add, contentDescription = "Create", tint = MaterialTheme.colorScheme.primary)
+                                Icon(Icons.Outlined.Add, contentDescription = "Create", tint = MaterialTheme.colorScheme.primary)
                             }
                         }
                         Spacer(modifier = Modifier.width(8.dp))
@@ -97,7 +93,7 @@ fun ServerListScreen(
                             color = MaterialTheme.colorScheme.surfaceVariant
                         ) {
                             IconButton(onClick = { showJoinDialog = true }) {
-                                Icon(Icons.Rounded.Group, contentDescription = "Join", tint = MaterialTheme.colorScheme.primary)
+                                Icon(Icons.Outlined.Group, contentDescription = "Join", tint = MaterialTheme.colorScheme.primary)
                             }
                         }
                         Spacer(modifier = Modifier.width(16.dp))
@@ -121,51 +117,60 @@ fun ServerListScreen(
                     .padding(padding)
                     .padding(horizontal = 20.dp)
             ) {
-                if (servers.isEmpty() && !isLoading) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Group,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text("No servers yet", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            "Create or join a server to get started",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(vertical = 16.dp)
-                    ) {
-                        item {
-                            SectionHeader("Your Servers")
+                when {
+                    isLoading -> ServerListSkeleton()
+                    servers.isEmpty() -> {
+                        BreathingGradientBackground(
+                            theme = currentTheme,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Group,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(64.dp),
+                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text("No servers yet", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    "Create or join a server to get started",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
-                        items(servers) { server ->
-                            ServerCard(
-                                server = server,
-                                currentTheme = currentTheme,
-                                onClick = {
-                                    navController.navigate("channels/${server.id}")
-                                },
-                                onSettings = {
-                                    navController.navigate("servers/${server.id}/settings")
-                                },
-                                onLeave = {
-                                    intentToLeave = server
-                                }
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
+                    }
+                    else -> {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(vertical = 16.dp)
+                        ) {
+                            item {
+                                SectionHeader("Your Servers")
+                            }
+                            items(servers) { server ->
+                                ServerCard(
+                                    server = server,
+                                    currentTheme = currentTheme,
+                                    onClick = {
+                                        navController.navigate("channels/${server.id}")
+                                    },
+                                    onSettings = {
+                                        navController.navigate("servers/${server.id}/settings")
+                                    },
+                                    onLeave = {
+                                        intentToLeave = server
+                                    }
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                            }
                         }
                     }
                 }
@@ -253,6 +258,31 @@ fun ServerListScreen(
 }
 
 @Composable
+fun ServerListSkeleton(modifier: Modifier = Modifier) {
+    Column(modifier = modifier.fillMaxSize()) {
+        Spacer(modifier = Modifier.height(24.dp))
+        ShimmerBox(modifier = Modifier.width(120.dp).height(16.dp), cornerRadius = 6.dp)
+        Spacer(modifier = Modifier.height(16.dp))
+        repeat(4) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ShimmerBox(modifier = Modifier.size(52.dp), cornerRadius = 18.dp)
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    ShimmerBox(modifier = Modifier.width(160.dp).height(16.dp), cornerRadius = 6.dp)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    ShimmerBox(modifier = Modifier.width(90.dp).height(12.dp), cornerRadius = 6.dp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun ServerCard(
     server: Server,
     currentTheme: com.bunny.ui.theme.AppTheme,
@@ -266,39 +296,23 @@ fun ServerCard(
             .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (!server.iconUrl.isNullOrBlank()) {
-                AsyncImage(
-                    model = server.iconUrl,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(52.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(MaterialTheme.colorScheme.primary),
-                    contentScale = ContentScale.Crop
+            Box {
+                UserAvatar(
+                    imageUrl = server.iconUrl,
+                    username = server.name,
+                    size = 52.dp
                 )
-            } else {
-                Box(
+                UnreadDot(
                     modifier = Modifier
-                        .size(52.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(
-                            com.bunny.ui.common.brandGradientBrush(currentTheme)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = server.name.take(1).uppercase(),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
+                        .align(Alignment.TopEnd)
+                        .offset(x = 2.dp, y = (-2).dp)
+                )
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -313,14 +327,14 @@ fun ServerCard(
                 onClick = onSettings,
                 modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
-                Icon(Icons.Rounded.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.primary)
+                Icon(Icons.Outlined.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.primary)
             }
             Spacer(modifier = Modifier.width(4.dp))
             IconButton(
                 onClick = onLeave,
                 modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f))
             ) {
-                Icon(Icons.Rounded.Delete, contentDescription = "Leave", tint = MaterialTheme.colorScheme.error)
+                Icon(Icons.Outlined.Delete, contentDescription = "Leave", tint = MaterialTheme.colorScheme.error)
             }
         }
     }
@@ -333,7 +347,7 @@ fun CreateServerDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(24.dp),
-        title = { Text("Create Server", fontWeight = FontWeight.Bold) },
+        title = { Text("Create Server", fontWeight = FontWeight.SemiBold) },
         text = {
             OutlinedTextField(
                 value = name,
@@ -362,7 +376,7 @@ fun JoinServerDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit, errorMe
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(24.dp),
-        title = { Text("Join Server", fontWeight = FontWeight.Bold) },
+        title = { Text("Join Server", fontWeight = FontWeight.SemiBold) },
         text = {
             Column {
                 OutlinedTextField(
@@ -397,7 +411,7 @@ fun InviteCodeDialog(server: Server, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(24.dp),
-        title = { Text("Server Created", fontWeight = FontWeight.Bold) },
+        title = { Text("Server Created", fontWeight = FontWeight.SemiBold) },
         text = {
             Column {
                 Text("Share this invite code so friends can join ${server.name}:")

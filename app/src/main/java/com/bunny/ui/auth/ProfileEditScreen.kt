@@ -11,10 +11,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.CameraAlt
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.CameraAlt
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -83,7 +83,7 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
                     title = { Text("Edit Profile", fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
+                            Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
@@ -116,7 +116,7 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
                             )
                         } else {
                             Icon(
-                                imageVector = Icons.Rounded.Person,
+                                imageVector = Icons.Outlined.Person,
                                 contentDescription = null,
                                 modifier = Modifier.size(56.dp),
                                 tint = Color.White
@@ -130,7 +130,7 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
                         onClick = { avatarPicker.launch("image/*") },
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Icon(Icons.Rounded.CameraAlt, contentDescription = null)
+                        Icon(Icons.Outlined.CameraAlt, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Change Avatar")
                     }
@@ -244,7 +244,7 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
                         },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = !isLoading,
-                        icon = Icons.Rounded.Check,
+                        icon = Icons.Outlined.Check,
                         text = if (isLoading) "Saving…" else "Save Changes",
                         theme = selectedTheme
                     )

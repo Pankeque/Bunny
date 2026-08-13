@@ -6,11 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import com.bunny.ui.theme.BunnyTheme
 import com.bunny.util.ThemeManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,16 +28,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    BunnyNavHost(isMasterDetail = isMasterDetail())
+                    BunnyNavHost()
                 }
             }
         }
-    }
-
-    @Composable
-    private fun isMasterDetail(): Boolean {
-        val configuration = LocalConfiguration.current
-        return configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE ||
-            configuration.screenWidthDp >= 600
     }
 }

@@ -3,7 +3,6 @@ package com.bunny.ui.channels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bunny.domain.model.Channel
-import com.bunny.domain.model.Server
 import com.bunny.domain.repository.ChannelRepository
 import com.bunny.domain.repository.ServerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel

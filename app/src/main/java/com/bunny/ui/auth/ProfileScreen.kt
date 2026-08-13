@@ -5,8 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.ExitToApp
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -129,7 +130,7 @@ fun ProfileScreen(navController: NavController, modifier: Modifier = Modifier) {
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            Icons.Rounded.Edit,
+                            Icons.Outlined.Edit,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )
@@ -137,7 +138,7 @@ fun ProfileScreen(navController: NavController, modifier: Modifier = Modifier) {
                     Spacer(modifier = Modifier.width(16.dp))
                     Text("Edit Profile", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                     Icon(
-                        androidx.compose.material.icons.rounded.ChevronRight,
+                        Icons.Outlined.ChevronRight,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -167,7 +168,7 @@ fun ProfileScreen(navController: NavController, modifier: Modifier = Modifier) {
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            Icons.Rounded.ExitToApp,
+                            Icons.Outlined.ExitToApp,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.error
                         )
@@ -175,7 +176,7 @@ fun ProfileScreen(navController: NavController, modifier: Modifier = Modifier) {
                     Spacer(modifier = Modifier.width(16.dp))
                     Text("Logout", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.error, modifier = Modifier.weight(1f))
                     Icon(
-                        androidx.compose.material.icons.rounded.ChevronRight,
+                        Icons.Outlined.ChevronRight,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.error
                     )
