@@ -1,5 +1,6 @@
 package com.bunny.ui.servers
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -16,11 +17,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.bunny.domain.model.Channel
 import com.bunny.domain.model.Server
+import com.bunny.ui.channels.ChannelViewModel
 import com.bunny.ui.channels.CreateChannelDialog
 import com.bunny.ui.common.BunnyTopBar
 import com.bunny.ui.common.ConfirmDialog
 import com.bunny.ui.common.ShimmerBox
 import com.bunny.ui.theme.BunnyAccent
+import kotlinx.coroutines.launch
 
 // Mobile-first home: server sidebar (rail) + channels of the active server.
 @Composable
@@ -42,6 +45,7 @@ fun ServersHome(
     val serversViewModel: ServerViewModel = hiltViewModel()
     val channelsViewModel: ChannelViewModel = hiltViewModel()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     var servers by remember { mutableStateOf<List<Server>>(emptyList()) }
     var channels by remember { mutableStateOf<List<Channel>>(emptyList()) }
@@ -178,10 +182,10 @@ fun ServersHome(
                     result.onSuccess { joined ->
                         showJoinDialog = false
                         selectedServerId = joined.id
-                        snackbarHostState.showSnackbar("You joined ${joined.name}")
+                        scope.launch { snackbarHostState.showSnackbar("You joined ${joined.name}") }
                         serversViewModel.loadServers { r -> r.onSuccess { servers = it } }
                     }.onFailure { e ->
-                        snackbarHostState.showSnackbar(e.message ?: "Invalid or expired invite code")
+                        scope.launch { snackbarHostState.showSnackbar(e.message ?: "Invalid or expired invite code") }
                     }
                 }
             }
