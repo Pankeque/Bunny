@@ -219,8 +219,7 @@ fun ChannelPane(
                 }
                 DropdownMenu(
                     expanded = headerMenuOpen,
-                    onDismissRequest = { headerMenuOpen = false },
-                    containerColor = MaterialTheme.colorScheme.surface
+                    onDismissRequest = { headerMenuOpen = false }
                 ) {
                     DropdownMenuItem(
                         text = { Text("Create channel") },
@@ -377,8 +376,7 @@ fun ChannelRow(
             }
             DropdownMenu(
                 expanded = menuOpen,
-                onDismissRequest = { menuOpen = false },
-                containerColor = MaterialTheme.colorScheme.surface
+                onDismissRequest = { menuOpen = false }
             ) {
                 DropdownMenuItem(
                     text = { Text("Settings") },
