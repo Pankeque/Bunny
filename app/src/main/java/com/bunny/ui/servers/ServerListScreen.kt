@@ -1,178 +1,148 @@
 package com.bunny.ui.servers
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.bunny.domain.model.Channel
 import com.bunny.domain.model.Server
-import com.bunny.ui.common.BreathingGradientBackground
+import com.bunny.ui.channels.CreateChannelDialog
+import com.bunny.ui.common.BunnyTopBar
 import com.bunny.ui.common.ConfirmDialog
-import com.bunny.ui.common.SectionHeader
 import com.bunny.ui.common.ShimmerBox
-import com.bunny.ui.common.UnreadDot
-import com.bunny.ui.common.UserAvatar
-import com.bunny.util.ThemeUtils
+import com.bunny.ui.theme.BunnyAccent
 
-@OptIn(ExperimentalMaterial3Api::class)
+// Mobile-first home: server sidebar (rail) + channels of the active server.
 @Composable
 fun ServerListScreen(
     navController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    initialServerId: Int? = null
 ) {
-    val viewModel: ServerViewModel = hiltViewModel()
+    ServersHome(navController = navController, modifier = modifier, initialServerId = initialServerId)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ServersHome(
+    navController: NavHostController,
+    modifier: Modifier = Modifier,
+    initialServerId: Int? = null
+) {
+    val serversViewModel: ServerViewModel = hiltViewModel()
+    val channelsViewModel: ChannelViewModel = hiltViewModel()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    var servers by remember { mutableStateOf<List<Server>>(emptyList()) }
+    var channels by remember { mutableStateOf<List<Channel>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var selectedServerId by remember { mutableStateOf<Int?>(initialServerId) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
     var showCreateDialog by remember { mutableStateOf(false) }
     var showJoinDialog by remember { mutableStateOf(false) }
+    var showCreateChannelDialog by remember { mutableStateOf(false) }
     var intentToLeave by remember { mutableStateOf<Server?>(null) }
-    var servers by remember { mutableStateOf<List<Server>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var joinedServer by remember { mutableStateOf<Server?>(null) }
-    var joinMessage by remember { mutableStateOf<String?>(null) }
+    var channelToDelete by remember { mutableStateOf<Channel?>(null) }
     var createdServer by remember { mutableStateOf<Server?>(null) }
 
-    val snackbarHostState = remember { SnackbarHostState() }
-    val prefs = navController.context.getSharedPreferences(com.bunny.util.Constants.PREFS_NAME, android.content.Context.MODE_PRIVATE)
-    val currentTheme = ThemeUtils.getThemeFromString(prefs.getString(com.bunny.util.Constants.KEY_THEME, "dark"))
-
     LaunchedEffect(Unit) {
-        viewModel.loadServers { result ->
-            result.onSuccess { servers = it }.onFailure { e ->
+        serversViewModel.loadServers { result ->
+            result.onSuccess { loaded ->
+                servers = loaded
+                val current = selectedServerId
+                if (loaded.isEmpty()) {
+                    selectedServerId = null
+                } else if (current == null || loaded.none { it.id == current }) {
+                    selectedServerId = loaded.first().id
+                }
+            }.onFailure { e ->
                 errorMessage = e.message
             }
             isLoading = false
         }
     }
 
+    LaunchedEffect(selectedServerId) {
+        val serverId = selectedServerId
+        if (serverId != null) {
+            channelsViewModel.loadChannels(serverId) { result ->
+                result.onSuccess { channels = it }
+                    .onFailure { e -> errorMessage = e.message }
+            }
+        } else {
+            channels = emptyList()
+        }
+    }
+
+    val activeServer = servers.find { it.id == selectedServerId }
+
     Surface(modifier = modifier.fillMaxSize()) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
             topBar = {
-                TopAppBar(
-                    title = {
-                        Column {
-                            Text("Bunny", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-                            Text(
-                                text = if (isLoading) "Loading…"
-                                else "${servers.size} server${if (servers.size == 1) "" else "s"}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
-                    actions = {
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surfaceVariant
-                        ) {
-                            IconButton(onClick = { showCreateDialog = true }) {
-                                Icon(Icons.Outlined.Add, contentDescription = "Create", tint = MaterialTheme.colorScheme.primary)
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surfaceVariant
-                        ) {
-                            IconButton(onClick = { showJoinDialog = true }) {
-                                Icon(Icons.Outlined.Group, contentDescription = "Join", tint = MaterialTheme.colorScheme.primary)
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                    }
+                BunnyTopBar(
+                    subtitle = if (isLoading) "Loading…"
+                    else "${servers.size} server${if (servers.size == 1) "" else "s"}"
                 )
             },
             bottomBar = { com.bunny.ui.BunnyBottomNav(navController) },
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { padding ->
-
-            LaunchedEffect(joinMessage) {
-                joinMessage?.let {
-                    snackbarHostState.showSnackbar(it)
-                    joinMessage = null
-                }
-            }
-
-            Column(
+            Row(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(horizontal = 20.dp)
             ) {
-                when {
-                    isLoading -> ServerListSkeleton()
-                    servers.isEmpty() -> {
-                        BreathingGradientBackground(
-                            theme = currentTheme,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Group,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(64.dp),
-                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
-                                )
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Text("No servers yet", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    "Create or join a server to get started",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-                    }
-                    else -> {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(vertical = 16.dp)
-                        ) {
-                            item {
-                                SectionHeader("Your Servers")
-                            }
-                            items(servers) { server ->
-                                ServerCard(
-                                    server = server,
-                                    currentTheme = currentTheme,
-                                    onClick = {
-                                        navController.navigate("channels/${server.id}")
-                                    },
-                                    onSettings = {
-                                        navController.navigate("servers/${server.id}/settings")
-                                    },
-                                    onLeave = {
-                                        intentToLeave = server
-                                    }
-                                )
-                                Spacer(modifier = Modifier.height(12.dp))
-                            }
-                        }
-                    }
+                ServerRail(
+                    servers = servers,
+                    selectedServerId = selectedServerId,
+                    onServerClick = { selectedServerId = it.id },
+                    onCreateClick = { showCreateDialog = true },
+                    onJoinClick = { showJoinDialog = true },
+                    modifier = Modifier.width(64.dp)
+                )
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .fillMaxHeight()
+                        .background(MaterialTheme.colorScheme.outlineVariant)
+                )
+                if (isLoading) {
+                    ServerPaneSkeleton(modifier = Modifier.weight(1f))
+                } else if (activeServer == null) {
+                    EmptyServersPane(
+                        onCreate = { showCreateDialog = true },
+                        onJoin = { showJoinDialog = true },
+                        modifier = Modifier.weight(1f)
+                    )
+                } else {
+                    ChannelPane(
+                        server = activeServer,
+                        channels = channels,
+                        selectedChannelId = null,
+                        onChannelClick = { channel ->
+                            navController.navigate("chat/${channel.id}?serverId=${activeServer.id}")
+                        },
+                        onChannelSettings = { channel ->
+                            navController.navigate("channels/${activeServer.id}/${channel.id}/settings")
+                        },
+                        onChannelDelete = { channel -> channelToDelete = channel },
+                        onCreateChannel = { showCreateChannelDialog = true },
+                        onServerSettings = { navController.navigate("servers/${activeServer.id}/settings") },
+                        onLeaveServer = { intentToLeave = activeServer },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }
@@ -183,12 +153,13 @@ fun ServerListScreen(
             onDismiss = { showCreateDialog = false },
             onConfirm = { name ->
                 isLoading = true
-                viewModel.createServer(name) { result ->
+                serversViewModel.createServer(name) { result ->
                     showCreateDialog = false
                     isLoading = false
                     result.onSuccess { server ->
                         createdServer = server
-                        viewModel.loadServers { r -> r.onSuccess { servers = it } }
+                        selectedServerId = server.id
+                        serversViewModel.loadServers { r -> r.onSuccess { servers = it } }
                     }.onFailure { e ->
                         errorMessage = e.message
                     }
@@ -199,42 +170,82 @@ fun ServerListScreen(
 
     if (showJoinDialog) {
         JoinServerDialog(
-            onDismiss = {
-                showJoinDialog = false
-                joinMessage = null
-            },
+            onDismiss = { showJoinDialog = false },
             onConfirm = { code ->
                 isLoading = true
-                viewModel.joinServer(code) { result ->
+                serversViewModel.joinServer(code) { result ->
                     isLoading = false
                     result.onSuccess { joined ->
                         showJoinDialog = false
-                        joinedServer = joined
-                        joinMessage = "Joined ${joined.name}"
-                        viewModel.loadServers { r -> r.onSuccess { servers = it } }
-                        navController.navigate("channels/${joined.id}")
+                        selectedServerId = joined.id
+                        snackbarHostState.showSnackbar("You joined ${joined.name}")
+                        serversViewModel.loadServers { r -> r.onSuccess { servers = it } }
                     }.onFailure { e ->
-                        joinMessage = e.message ?: "Invalid or expired invite code"
+                        snackbarHostState.showSnackbar(e.message ?: "Invalid or expired invite code")
                     }
                 }
-            },
-            errorMessage = joinMessage
+            }
+        )
+    }
+
+    if (showCreateChannelDialog) {
+        CreateChannelDialog(
+            onDismiss = { showCreateChannelDialog = false },
+            onConfirm = { name ->
+                val serverId = selectedServerId
+                if (serverId != null) {
+                    channelsViewModel.createChannel(serverId, name, "text") { result ->
+                        showCreateChannelDialog = false
+                        result.onSuccess {
+                            channelsViewModel.loadChannels(serverId) { r -> r.onSuccess { channels = it } }
+                        }.onFailure { e ->
+                            errorMessage = e.message
+                        }
+                    }
+                } else {
+                    showCreateChannelDialog = false
+                }
+            }
         )
     }
 
     intentToLeave?.let { server ->
         ConfirmDialog(
-            title = "Leave Server",
+            title = "Leave server",
             message = "Are you sure you want to leave ${server.name}?",
             onConfirm = {
-                viewModel.leaveServer(server.id) { result ->
+                serversViewModel.leaveServer(server.id) { result ->
                     result.onSuccess {
-                        viewModel.loadServers { r -> r.onSuccess { servers = it } }
+                        serversViewModel.loadServers { r ->
+                            r.onSuccess { loaded ->
+                                servers = loaded
+                                selectedServerId = loaded.firstOrNull()?.id
+                            }
+                        }
                     }
                 }
                 intentToLeave = null
             },
             onDismiss = { intentToLeave = null }
+        )
+    }
+
+    channelToDelete?.let { channel ->
+        ConfirmDialog(
+            title = "Delete channel",
+            message = "Delete channel ${channel.name}? All messages will be removed.",
+            onConfirm = {
+                channelsViewModel.deleteChannel(channel.id) { result ->
+                    result.onSuccess {
+                        val serverId = selectedServerId
+                        if (serverId != null) {
+                            channelsViewModel.loadChannels(serverId) { r -> r.onSuccess { channels = it } }
+                        }
+                    }
+                }
+                channelToDelete = null
+            },
+            onDismiss = { channelToDelete = null }
         )
     }
 
@@ -258,83 +269,69 @@ fun ServerListScreen(
 }
 
 @Composable
-fun ServerListSkeleton(modifier: Modifier = Modifier) {
-    Column(modifier = modifier.fillMaxSize()) {
+private fun EmptyServersPane(
+    onCreate: () -> Unit,
+    onJoin: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Group,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text("No servers yet", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            "Create a server or join with an invite code",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
         Spacer(modifier = Modifier.height(24.dp))
-        ShimmerBox(modifier = Modifier.width(120.dp).height(16.dp), cornerRadius = 6.dp)
-        Spacer(modifier = Modifier.height(16.dp))
-        repeat(4) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                ShimmerBox(modifier = Modifier.size(52.dp), cornerRadius = 18.dp)
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    ShimmerBox(modifier = Modifier.width(160.dp).height(16.dp), cornerRadius = 6.dp)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    ShimmerBox(modifier = Modifier.width(90.dp).height(12.dp), cornerRadius = 6.dp)
-                }
-            }
+        Button(
+            onClick = onCreate,
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = BunnyAccent,
+                contentColor = androidx.compose.ui.graphics.Color.White
+            )
+        ) {
+            Icon(Icons.Outlined.Add, contentDescription = null)
+            Spacer(modifier = Modifier.width(6.dp))
+            Text("Create server", fontWeight = FontWeight.SemiBold)
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        OutlinedButton(onClick = onJoin, shape = RoundedCornerShape(14.dp)) {
+            Icon(Icons.Outlined.Group, contentDescription = null)
+            Spacer(modifier = Modifier.width(6.dp))
+            Text("Join with code")
         }
     }
 }
 
 @Composable
-fun ServerCard(
-    server: Server,
-    currentTheme: com.bunny.ui.theme.AppTheme,
-    onClick: () -> Unit,
-    onSettings: () -> Unit,
-    onLeave: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box {
-                UserAvatar(
-                    imageUrl = server.iconUrl,
-                    username = server.name,
-                    size = 52.dp
+private fun ServerPaneSkeleton(modifier: Modifier = Modifier) {
+    Column(modifier = modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 20.dp)) {
+        repeat(4) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                com.bunny.ui.common.ShimmerBox(
+                    modifier = Modifier.size(16.dp),
+                    cornerRadius = 5.dp
                 )
-                UnreadDot(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .offset(x = 2.dp, y = (-2).dp)
+                Spacer(modifier = Modifier.width(10.dp))
+                com.bunny.ui.common.ShimmerBox(
+                    modifier = Modifier.width(120.dp).height(14.dp),
+                    cornerRadius = 6.dp
                 )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = server.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text(
-                    text = "Open server",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            IconButton(
-                onClick = onSettings,
-                modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Icon(Icons.Outlined.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.primary)
-            }
-            Spacer(modifier = Modifier.width(4.dp))
-            IconButton(
-                onClick = onLeave,
-                modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f))
-            ) {
-                Icon(Icons.Outlined.Delete, contentDescription = "Leave", tint = MaterialTheme.colorScheme.error)
             }
         }
     }
@@ -347,12 +344,12 @@ fun CreateServerDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(24.dp),
-        title = { Text("Create Server", fontWeight = FontWeight.SemiBold) },
+        title = { Text("Create server", fontWeight = FontWeight.SemiBold) },
         text = {
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Server Name") },
+                label = { Text("Server name") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp)
@@ -376,13 +373,13 @@ fun JoinServerDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit, errorMe
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(24.dp),
-        title = { Text("Join Server", fontWeight = FontWeight.SemiBold) },
+        title = { Text("Join server", fontWeight = FontWeight.SemiBold) },
         text = {
             Column {
                 OutlinedTextField(
                     value = code,
                     onValueChange = { code = it },
-                    label = { Text("Invite Code") },
+                    label = { Text("Invite code") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     isError = errorMessage != null,
@@ -411,10 +408,10 @@ fun InviteCodeDialog(server: Server, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(24.dp),
-        title = { Text("Server Created", fontWeight = FontWeight.SemiBold) },
+        title = { Text("Server created", fontWeight = FontWeight.SemiBold) },
         text = {
             Column {
-                Text("Share this invite code so friends can join ${server.name}:")
+                Text("Share this invite code for friends to join ${server.name}:")
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = server.inviteCode,

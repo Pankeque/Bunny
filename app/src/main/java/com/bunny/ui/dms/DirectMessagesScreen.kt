@@ -49,13 +49,13 @@ fun DirectMessagesScreen(navController: NavController, modifier: Modifier = Modi
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Direct Messages",
+                    text = "Direct messages",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Your private conversations will live here.\nStart by opening a server and chatting with friends.",
+                    text = "Your private conversations will live here.\nOpen a server and start chatting.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,

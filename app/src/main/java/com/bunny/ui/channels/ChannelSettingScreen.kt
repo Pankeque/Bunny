@@ -9,7 +9,6 @@ import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Tag
-import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,7 +28,6 @@ import com.bunny.util.ThemeUtils
 fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId: Int, modifier: Modifier = Modifier) {
     val viewModel: ChannelViewModel = hiltViewModel()
     var channelName by remember { mutableStateOf("") }
-    var channelType by remember { mutableStateOf("text") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var intentToDelete by remember { mutableStateOf<Boolean>(false) }
@@ -41,7 +39,6 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
             result.onSuccess { channels ->
                 channels.find { it.id == channelId }?.let {
                     channelName = it.name
-                    channelType = it.type
                 }
             }
         }
@@ -50,7 +47,7 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
     Surface(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
-                title = { Text("Channel Settings", fontWeight = FontWeight.Bold) },
+                title = { Text("Channel settings", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
@@ -76,7 +73,7 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
-                        Text("Channel Name", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Channel name", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
                             value = channelName,
@@ -85,28 +82,20 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp)
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("Channel Type", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            listOf("text", "voice").forEach { type ->
-                                FilterChip(
-                                    selected = channelType == type,
-                                    onClick = { channelType = type },
-                                    label = { Text(type.replaceFirstChar { it.uppercase() }) },
-                                    leadingIcon = {
-                                        Icon(
-                                            if (type == "voice") Icons.Outlined.Videocam else Icons.Outlined.Tag,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                    },
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Outlined.Tag,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Text channel",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }
@@ -116,7 +105,7 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
                 GradientButton(
                     onClick = {
                         isLoading = true
-                        viewModel.updateChannel(channelId, channelName, channelType) { result ->
+                        viewModel.updateChannel(channelId, channelName, null) { result ->
                             isLoading = false
                             result.onSuccess { navController.popBackStack() }
                                 .onFailure { e -> errorMessage = e.message }
@@ -125,7 +114,7 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !isLoading && channelName.isNotBlank(),
                     icon = Icons.Outlined.Check,
-                    text = if (isLoading) "Saving…" else "Save Changes",
+                    text = if (isLoading) "Saving…" else "Save changes",
                     theme = currentTheme
                 )
 
@@ -139,7 +128,7 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
                 ) {
                     Icon(Icons.Outlined.Delete, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Delete Channel")
+                    Text("Delete channel")
                 }
             }
         }
@@ -147,7 +136,7 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
 
     if (intentToDelete) {
         ConfirmDialog(
-            title = "Delete Channel",
+            title = "Delete channel",
             message = "Are you sure you want to delete this channel? All messages will be permanently lost.",
             onConfirm = {
                 isLoading = true

@@ -86,7 +86,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
     Surface(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
-                title = { Text("Server Settings", fontWeight = FontWeight.Bold) },
+                title = { Text("Server settings", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
@@ -103,7 +103,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                     .padding(top = 8.dp, bottom = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                SectionHeader("Server Icon", modifier = Modifier.fillMaxWidth())
+                SectionHeader("Server icon", modifier = Modifier.fillMaxWidth())
 
                 Box(
                     modifier = Modifier
@@ -138,7 +138,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                 ) {
                     Icon(Icons.Outlined.CameraAlt, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Change Icon")
+                    Text("Change icon")
                 }
 
                 Spacer(modifier = Modifier.height(28.dp))
@@ -152,7 +152,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
-                        Text("Server Name", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Server name", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
                             value = serverName,
@@ -175,7 +175,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
                         Column(modifier = Modifier.padding(18.dp)) {
-                            Text("Invite Code", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Invite code", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 OutlinedTextField(
@@ -218,7 +218,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                             ) {
                                 Icon(Icons.Outlined.Refresh, contentDescription = null)
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Regenerate Invite Code")
+                                Text("Generate new code")
                             }
                         }
                     }
@@ -253,7 +253,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !isLoading && serverName.isNotBlank(),
                     icon = Icons.Outlined.Check,
-                    text = if (isLoading) "Saving…" else "Save Changes",
+                    text = if (isLoading) "Saving…" else "Save changes",
                     theme = currentTheme
                 )
 
@@ -266,7 +266,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                 ) {
                     Icon(Icons.Outlined.Shield, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Manage Roles")
+                    Text("Manage roles")
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -279,7 +279,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                 ) {
                     Icon(Icons.Outlined.Delete, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Delete Server")
+                    Text("Delete server")
                 }
             }
         }
@@ -287,7 +287,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
 
     if (intentToDelete) {
         ConfirmDialog(
-            title = "Delete Server",
+            title = "Delete server",
             message = "Are you sure you want to delete this server? All channels, messages, and members will be permanently lost.",
             onConfirm = {
                 isLoading = true

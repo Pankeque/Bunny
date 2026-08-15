@@ -16,12 +16,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bunny.ui.common.BreathingGradientBackground
+import com.bunny.ui.common.BunnyLogoMark
+import com.bunny.ui.common.BunnyWordmark
+import com.bunny.ui.common.DownloadApkButton
 import com.bunny.ui.common.ErrorDialog
 import com.bunny.ui.common.GradientButton
-import com.bunny.ui.common.GradientLogo
 import com.bunny.ui.theme.AppTheme
 import com.bunny.util.Constants
 import com.bunny.util.ThemeUtils
@@ -52,84 +55,82 @@ fun LoginScreen(navController: NavController, modifier: Modifier = Modifier) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 32.dp)
-                    .padding(top = 72.dp, bottom = 32.dp),
+                    .padding(horizontal = 28.dp)
+                    .padding(top = 64.dp, bottom = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                GradientLogo(theme = currentTheme, size = 88.dp, icon = Icons.Outlined.Face)
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Bunny",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                BunnyLogoMark(size = 72.dp)
+                Spacer(modifier = Modifier.height(14.dp))
+                BunnyWordmark(fontSize = 34.sp)
                 Text(
                     text = "Welcome back",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(modifier = Modifier.height(48.dp))
+                Spacer(modifier = Modifier.height(36.dp))
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
                 ) {
-                    Column(modifier = Modifier.padding(24.dp)) {
-                    OutlinedTextField(
-                        value = username,
-                        onValueChange = { username = it },
-                        label = { Text("Username") },
-                        leadingIcon = { Icon(Icons.Outlined.Face, contentDescription = null) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Column(modifier = Modifier.padding(22.dp)) {
+                        OutlinedTextField(
+                            value = username,
+                            onValueChange = { username = it },
+                            label = { Text("Username") },
+                            leadingIcon = { Icon(Icons.Outlined.Face, contentDescription = null) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                        Spacer(modifier = Modifier.height(14.dp))
 
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        label = { Text("Password") },
-                        leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
+                        OutlinedTextField(
+                            value = password,
+                            onValueChange = { password = it },
+                            label = { Text("Password") },
+                            leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
+                            visualTransformation = PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
 
-                    GradientButton(
-                        onClick = {
-                            isLoading = true
-                            viewModel.login(username, password) { result ->
-                                isLoading = false
-                                result.onSuccess {
-                                    navController.navigate("servers") {
-                                        popUpTo("login") { inclusive = true }
+                        GradientButton(
+                            onClick = {
+                                isLoading = true
+                                viewModel.login(username, password) { result ->
+                                    isLoading = false
+                                    result.onSuccess {
+                                        navController.navigate("servers") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
+                                    }.onFailure { e ->
+                                        errorMessage = e.message ?: "Login failed"
                                     }
-                                }.onFailure { e ->
-                                    errorMessage = e.message ?: "Login failed"
                                 }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !isLoading && username.isNotBlank() && password.isNotBlank(),
-                        icon = if (isLoading) null else Icons.Outlined.Login,
-                        text = if (isLoading) "Signing in…" else "Login",
-                        theme = currentTheme
-                    )
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isLoading && username.isNotBlank() && password.isNotBlank(),
+                            icon = if (isLoading) null else Icons.Outlined.Login,
+                            text = if (isLoading) "Logging in…" else "Log in",
+                            theme = currentTheme
+                        )
+                    }
                 }
-            }
 
-            Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.weight(1f))
 
-            TextButton(onClick = { navController.navigate("register") }) {
-                Text("Don't have an account? Register", textAlign = TextAlign.Center)
-            }
+                TextButton(onClick = { navController.navigate("register") }) {
+                    Text("Don't have an account? Create account", textAlign = TextAlign.Center)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                DownloadApkButton()
             }
         }
     }

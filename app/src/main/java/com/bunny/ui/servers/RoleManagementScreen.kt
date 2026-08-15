@@ -57,7 +57,7 @@ fun RoleManagementScreen(navController: NavController, serverId: Int, modifier: 
                         color = MaterialTheme.colorScheme.primaryContainer
                     ) {
                         IconButton(onClick = { showCreateDialog = true }) {
-                            Icon(Icons.Outlined.Shield, contentDescription = "Create Role", tint = MaterialTheme.colorScheme.primary)
+                            Icon(Icons.Outlined.Shield, contentDescription = "Create role", tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                     Spacer(modifier = Modifier.width(16.dp))
@@ -92,7 +92,7 @@ fun RoleManagementScreen(navController: NavController, serverId: Int, modifier: 
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp)
             ) {
                 item {
-                    SectionHeader("Server Roles")
+                    SectionHeader("Server roles")
                 }
                 items(roles) { role ->
                     RoleCard(
@@ -125,7 +125,7 @@ fun RoleManagementScreen(navController: NavController, serverId: Int, modifier: 
 
     roleToDelete?.let { role ->
         ConfirmDialog(
-            title = "Delete Role",
+            title = "Delete role",
             message = "Delete role ${role.name}?",
             onConfirm = {
                 viewModel.deleteRole(role.id) { result ->
@@ -196,13 +196,13 @@ fun CreateRoleDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit)
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(24.dp),
-        title = { Text("Create Role", fontWeight = FontWeight.Bold) },
+        title = { Text("Create role", fontWeight = FontWeight.Bold) },
         text = {
             Column {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Role Name") },
+                    label = { Text("Role name") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
@@ -211,7 +211,7 @@ fun CreateRoleDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit)
                 OutlinedTextField(
                     value = color,
                     onValueChange = { color = it },
-                    label = { Text("Color (hex)") },
+                    label = { Text("Cor (hex)") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)

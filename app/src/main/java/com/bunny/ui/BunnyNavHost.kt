@@ -19,10 +19,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.bunny.ui.auth.LoginScreen
 import com.bunny.ui.auth.ProfileEditScreen
 import com.bunny.ui.auth.ProfileScreen
@@ -99,8 +101,18 @@ fun BunnyNavHost() {
             }
         }
 
-        composable("chat/{channelId}") { backStackEntry ->
-            val channelId = backStackEntry.arguments?.getString("channelId")?.toIntOrNull() ?: 0
+        composable(
+            route = "chat/{channelId}?serverId={serverId}",
+            arguments = listOf(
+                navArgument("channelId") { type = NavType.IntType },
+                navArgument("serverId") {
+                    type = NavType.IntType
+                    defaultValue = -1
+                }
+            )
+        ) { backStackEntry ->
+            val channelId = backStackEntry.arguments?.getInt("channelId") ?: 0
+            val serverId = backStackEntry.arguments?.getInt("serverId") ?: -1
             if (wide) {
                 ServerWorkspace(
                     navController = navController,
@@ -110,7 +122,7 @@ fun BunnyNavHost() {
                     onChannelSelected = { selectedChannelId = it }
                 )
             } else {
-                ChatScreen(navController, channelId, Modifier.fillMaxSize())
+                ChatScreen(navController, channelId, serverId, Modifier.fillMaxSize())
             }
         }
 

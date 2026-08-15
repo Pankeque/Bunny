@@ -4,6 +4,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.bunny.R
@@ -13,6 +14,21 @@ val InterFamily = FontFamily(
     Font(R.font.inter_medium, FontWeight.Medium),
     Font(R.font.inter_semibold, FontWeight.SemiBold),
     Font(R.font.inter_bold, FontWeight.Bold)
+)
+
+// Playfair Display italic — used only on the "Bunny" wordmark
+val PlayfairItalicFamily = FontFamily(
+    Font(R.font.playfair_display_italic, FontWeight.Normal, FontStyle.Italic)
+)
+
+// "Bunny" wordmark style
+val WordmarkStyle = TextStyle(
+    fontFamily = PlayfairItalicFamily,
+    fontWeight = FontWeight.Normal,
+    fontStyle = FontStyle.Italic,
+    fontSize = 26.sp,
+    lineHeight = 30.sp,
+    letterSpacing = (-0.2).sp
 )
 
 val Typography = Typography(

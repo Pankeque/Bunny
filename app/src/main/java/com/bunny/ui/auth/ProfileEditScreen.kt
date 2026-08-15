@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -20,7 +19,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -31,10 +29,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.bunny.ui.common.GradientButton
 import com.bunny.ui.common.SectionHeader
-import com.bunny.ui.common.brandGradientBrush
-import com.bunny.ui.common.brandGradientColors
-import com.bunny.ui.theme.AppTheme
-import com.bunny.ui.theme.BunnyTheme
+import com.bunny.ui.theme.BunnyAccent
 import com.bunny.util.Constants
 import com.bunny.util.ImageUtils
 
@@ -48,7 +43,6 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
     var avatarBytes by remember { mutableStateOf<ByteArray?>(null) }
     var avatarMime by remember { mutableStateOf<String?>(null) }
     var avatarUri by remember { mutableStateOf<Uri?>(null) }
-    var selectedTheme by remember { mutableStateOf(AppTheme.DARK) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var usernameError by remember { mutableStateOf<String?>(null) }
@@ -58,8 +52,6 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
     LaunchedEffect(Unit) {
         username = prefs.getString(Constants.KEY_USERNAME, "") ?: ""
         avatarUrl = prefs.getString(Constants.KEY_AVATAR_URL, "") ?: ""
-        val themeStr = prefs.getString(Constants.KEY_THEME, "dark")
-        selectedTheme = com.bunny.util.ThemeUtils.getThemeFromString(themeStr)
     }
 
     val avatarPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -76,179 +68,150 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
         }
     }
 
-    BunnyTheme(theme = selectedTheme) {
-        Surface(modifier = modifier.fillMaxSize()) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                TopAppBar(
-                    title = { Text("Edit Profile", fontWeight = FontWeight.Bold) },
-                    navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
+    Surface(modifier = modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            TopAppBar(
+                title = { Text("Edit profile", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 8.dp, bottom = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                SectionHeader("Avatar", modifier = Modifier.fillMaxWidth())
+
+                Box(
+                    modifier = Modifier
+                        .size(110.dp)
+                        .clip(CircleShape)
+                        .background(BunnyAccent),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val displayModel: Any = avatarUri ?: avatarUrl
+                    if (avatarUri != null || avatarUrl.isNotBlank()) {
+                        AsyncImage(
+                            model = displayModel,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Outlined.Person,
+                            contentDescription = null,
+                            modifier = Modifier.size(56.dp),
+                            tint = Color.White
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedButton(
+                    onClick = { avatarPicker.launch("image/*") },
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(Icons.Outlined.CameraAlt, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Change photo")
+                }
+                avatarError?.let { err ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(err, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                SectionHeader("General", modifier = Modifier.fillMaxWidth())
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Text("Username", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = username,
+                            onValueChange = { username = it; usernameError = null },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            isError = usernameError != null,
+                            supportingText = usernameError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "Dark theme is Bunny's default.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                GradientButton(
+                    onClick = {
+                        usernameError = null
+                        avatarError = null
+                        var hasError = false
+                        if (username.isBlank()) {
+                            usernameError = "Username cannot be empty"
+                            hasError = true
+                        } else if (username.length < 2) {
+                            usernameError = "Name must be at least 2 characters"
+                            hasError = true
+                        } else if (username.length > 50) {
+                            usernameError = "Name must be at most 50 characters"
+                            hasError = true
+                        }
+                        if (hasError) return@GradientButton
+                        isLoading = true
+                        if (avatarBytes != null && avatarMime != null) {
+                            viewModel.uploadAvatar(avatarBytes!!, avatarMime!!) { avatarResult ->
+                                avatarResult.onSuccess {
+                                    viewModel.updateProfile(username, null, "dark") { result ->
+                                        isLoading = false
+                                        result.onSuccess {
+                                            navController.popBackStack()
+                                        }.onFailure { e ->
+                                            errorMessage = e.message
+                                        }
+                                    }
+                                }.onFailure { e ->
+                                    isLoading = false
+                                    errorMessage = e.message
+                                }
+                            }
+                        } else {
+                            viewModel.updateProfile(username, null, "dark") { result ->
+                                isLoading = false
+                                result.onSuccess {
+                                    navController.popBackStack()
+                                }.onFailure { e ->
+                                    errorMessage = e.message
+                                }
+                            }
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !isLoading,
+                    icon = Icons.Outlined.Check,
+                    text = if (isLoading) "Saving…" else "Save changes"
                 )
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 24.dp)
-                        .padding(top = 8.dp, bottom = 32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    SectionHeader("Avatar", modifier = Modifier.fillMaxWidth())
-
-                    Box(
-                        modifier = Modifier
-                            .size(110.dp)
-                            .clip(CircleShape)
-                            .background(brandGradientBrush(selectedTheme)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        val displayModel: Any = avatarUri ?: avatarUrl
-                        if (avatarUri != null || avatarUrl.isNotBlank()) {
-                            AsyncImage(
-                                model = displayModel,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Outlined.Person,
-                                contentDescription = null,
-                                modifier = Modifier.size(56.dp),
-                                tint = Color.White
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    OutlinedButton(
-                        onClick = { avatarPicker.launch("image/*") },
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Icon(Icons.Outlined.CameraAlt, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Change Avatar")
-                    }
-                    avatarError?.let { err ->
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(err, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    }
-
-                    Spacer(modifier = Modifier.height(28.dp))
-
-                    SectionHeader("General", modifier = Modifier.fillMaxWidth())
-
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(18.dp)) {
-                            Text("Username", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            OutlinedTextField(
-                                value = username,
-                                onValueChange = { username = it; usernameError = null },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
-                                isError = usernameError != null,
-                                supportingText = usernameError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
-                                shape = RoundedCornerShape(16.dp)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(28.dp))
-
-                    SectionHeader("Theme", modifier = Modifier.fillMaxWidth())
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        ThemeOption(
-                            name = "Dark",
-                            gradient = brandGradientColors(AppTheme.DARK),
-                            selected = selectedTheme == AppTheme.DARK,
-                            onClick = { selectedTheme = AppTheme.DARK },
-                            modifier = Modifier.weight(1f)
-                        )
-                        ThemeOption(
-                            name = "Light",
-                            gradient = brandGradientColors(AppTheme.LIGHT),
-                            selected = selectedTheme == AppTheme.LIGHT,
-                            onClick = { selectedTheme = AppTheme.LIGHT },
-                            modifier = Modifier.weight(1f)
-                        )
-                        ThemeOption(
-                            name = "Yellow",
-                            gradient = brandGradientColors(AppTheme.YELLOW),
-                            selected = selectedTheme == AppTheme.YELLOW,
-                            onClick = { selectedTheme = AppTheme.YELLOW },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    GradientButton(
-                        onClick = {
-                            usernameError = null
-                            avatarError = null
-                            var hasError = false
-                            if (username.isBlank()) {
-                                usernameError = "Username cannot be empty"
-                                hasError = true
-                            } else if (username.length < 2) {
-                                usernameError = "Username must be at least 2 characters"
-                                hasError = true
-                            } else if (username.length > 50) {
-                                usernameError = "Username must be at most 50 characters"
-                                hasError = true
-                            }
-                            if (hasError) return@GradientButton
-                            isLoading = true
-                            val theme = selectedTheme.name.lowercase()
-                            if (avatarBytes != null && avatarMime != null) {
-                                viewModel.uploadAvatar(avatarBytes!!, avatarMime!!) { avatarResult ->
-                                    avatarResult.onSuccess {
-                                        viewModel.updateProfile(username, null, theme) { result ->
-                                            isLoading = false
-                                            result.onSuccess {
-                                                navController.popBackStack()
-                                            }.onFailure { e ->
-                                                errorMessage = e.message
-                                            }
-                                        }
-                                    }.onFailure { e ->
-                                        isLoading = false
-                                        errorMessage = e.message
-                                    }
-                                }
-                            } else {
-                                viewModel.updateProfile(username, null, theme) { result ->
-                                    isLoading = false
-                                    result.onSuccess {
-                                        navController.popBackStack()
-                                    }.onFailure { e ->
-                                        errorMessage = e.message
-                                    }
-                                }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !isLoading,
-                        icon = Icons.Outlined.Check,
-                        text = if (isLoading) "Saving…" else "Save Changes",
-                        theme = selectedTheme
-                    )
-                }
             }
         }
     }
@@ -261,34 +224,6 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
             confirmButton = {
                 TextButton(onClick = { errorMessage = null }) { Text("OK") }
             }
-        )
-    }
-}
-
-@Composable
-fun ThemeOption(name: String, gradient: List<Color>, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                if (selected) MaterialTheme.colorScheme.primaryContainer
-                else MaterialTheme.colorScheme.surface
-            )
-            .clickable { onClick() }
-            .padding(vertical = 14.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .clip(CircleShape)
-                .background(Brush.linearGradient(gradient))
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = name,
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
         )
     }
 }
