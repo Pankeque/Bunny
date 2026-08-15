@@ -87,7 +87,7 @@ object AppModule {
         ).build()
     }
 
-    // --- FORNECIMENTO EXPLÍCITO DOS DAOS ---
+    // --- EXPLICIT DAO PROVIDERS ---
     @Provides
     fun provideUserDao(database: BunnyDatabase): UserDao = database.userDao()
 
