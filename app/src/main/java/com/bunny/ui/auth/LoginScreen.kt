@@ -76,7 +76,7 @@ fun LoginScreen(navController: NavController, modifier: Modifier = Modifier) {
     Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(modifier = Modifier.fillMaxSize()) {
             AuthTopBar(
-                onBack = if (navController.previousBackStackEntry?.value != null) {
+                onBack = if (navController.previousBackStackEntry != null) {
                     { navController.popBackStack() }
                 } else null,
                 endText = "Forgot your password?",
