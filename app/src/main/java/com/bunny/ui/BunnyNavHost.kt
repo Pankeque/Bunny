@@ -29,6 +29,7 @@ import com.bunny.ui.auth.LoginScreen
 import com.bunny.ui.auth.ProfileEditScreen
 import com.bunny.ui.auth.ProfileScreen
 import com.bunny.ui.auth.RegisterScreen
+import com.bunny.ui.auth.SplashScreen
 import com.bunny.ui.channels.ChannelListScreen
 import com.bunny.ui.channels.ChannelSettingScreen
 import com.bunny.ui.chat.ChatScreen
@@ -63,12 +64,13 @@ fun BunnyNavHost() {
 
     NavHost(
         navController = navController,
-        startDestination = "login",
+        startDestination = "splash",
         enterTransition = { slideInHorizontally(initialOffsetX = { it / 4 }) + fadeIn() },
         exitTransition = { slideOutHorizontally(targetOffsetX = { -it / 4 }) + fadeOut() },
         popEnterTransition = { slideInHorizontally(initialOffsetX = { -it / 4 }) + fadeIn() },
         popExitTransition = { slideOutHorizontally(targetOffsetX = { it / 4 }) + fadeOut() }
     ) {
+        composable("splash") { SplashScreen(navController, Modifier.fillMaxSize()) }
         composable("login") { LoginScreen(navController, Modifier.fillMaxSize()) }
         composable("register") { RegisterScreen(navController, Modifier.fillMaxSize()) }
 

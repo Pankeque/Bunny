@@ -23,13 +23,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.bunny.ui.common.BunnyLogoMark
-import com.bunny.ui.common.BunnyWordmark
 import com.bunny.ui.common.ErrorDialog
 import com.bunny.ui.theme.BunnyAccent
+import com.bunny.ui.theme.BunnySurfaceVariant
 import com.bunny.util.Constants
 import com.bunny.util.ThemeUtils
 
@@ -51,7 +49,7 @@ fun LoginScreen(navController: NavController, modifier: Modifier = Modifier) {
         val token = prefs.getString(Constants.KEY_ACCESS_TOKEN, null)
         if (!token.isNullOrEmpty()) {
             navController.navigate("servers") {
-                popUpTo("login") { inclusive = true }
+                popUpTo(0) { inclusive = true }
             }
         }
     }
@@ -63,11 +61,11 @@ fun LoginScreen(navController: NavController, modifier: Modifier = Modifier) {
         }
         if (password.isBlank()) return
         isLoading = true
-        viewModel.login(username, password) { result ->
+        viewModel.login(username.trim(), password) { result ->
             isLoading = false
             result.onSuccess {
                 navController.navigate("servers") {
-                    popUpTo("login") { inclusive = true }
+                    popUpTo(0) { inclusive = true }
                 }
             }.onFailure { e ->
                 errorMessage = e.message ?: "Login failed"
@@ -76,117 +74,112 @@ fun LoginScreen(navController: NavController, modifier: Modifier = Modifier) {
     }
 
     Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
-                .padding(top = 48.dp, bottom = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            BunnyLogoMark(size = 64.dp)
-            Spacer(modifier = Modifier.height(12.dp))
-            BunnyWordmark(fontSize = 30.sp)
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = "Sign in",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.fillMaxWidth()
+        Column(modifier = Modifier.fillMaxSize()) {
+            AuthTopBar(
+                onBack = if (navController.previousBackStackEntry?.value != null) {
+                    { navController.popBackStack() }
+                } else null,
+                endText = "Forgot your password?",
+                onEndClick = { showForgotDialog = true }
             )
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 12.dp, bottom = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    OutlinedTextField(
-                        value = username,
-                        onValueChange = { username = it; usernameError = null },
-                        label = { Text("Email or username") },
-                        leadingIcon = { Icon(Icons.Outlined.Person, contentDescription = null) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                        isError = usernameError != null,
-                        supportingText = usernameError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-                    )
-                    Spacer(modifier = Modifier.height(14.dp))
+                Text(
+                    text = "Let's get something",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "Good to see you back",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(28.dp))
 
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        label = { Text("Password") },
-                        leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
-                        trailingIcon = {
-                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(
-                                    imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                    contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = BunnySurfaceVariant),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        AuthTextField(
+                            value = username,
+                            onValueChange = { username = it; usernameError = null },
+                            label = "Username or email",
+                            leadingIcon = Icons.Outlined.Person,
+                            isError = usernameError != null,
+                            supportingText = usernameError,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        AuthTextField(
+                            value = password,
+                            onValueChange = { password = it },
+                            label = "Password",
+                            leadingIcon = Icons.Outlined.Lock,
+                            trailingIcon = {
+                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                    Icon(
+                                        imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                                    )
+                                }
+                            },
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = { submit() })
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Button(
+                            onClick = { submit() },
+                            enabled = !isLoading && username.isNotBlank() && password.isNotBlank(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = BunnyAccent,
+                                contentColor = Color.White,
+                                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
+                        ) {
+                            if (isLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = Color.White,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text(
+                                    text = if (isLoading) "Signing in…" else "Sign in",
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             }
-                        },
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = { submit() }),
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp)
-                    )
-
-                    TextButton(
-                        onClick = { showForgotDialog = true },
-                        modifier = Modifier.align(Alignment.End)
-                    ) {
-                        Text(
-                            text = "Forgot password?",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    Button(
-                        onClick = { submit() },
-                        enabled = !isLoading && username.isNotBlank() && password.isNotBlank(),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = BunnyAccent,
-                            contentColor = Color.White,
-                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = Color.White,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text(
-                                text = if (isLoading) "Signing in…" else "Sign in",
-                                fontWeight = FontWeight.SemiBold
-                            )
                         }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
-            TextButton(onClick = { navController.navigate("register") }) {
-                Text(
-                    text = "Don't have an account? Create one",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
+                TextButton(onClick = { navController.navigate("register") }) {
+                    Text(
+                        text = "Don't have an account? Sign up",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }
@@ -196,7 +189,7 @@ fun LoginScreen(navController: NavController, modifier: Modifier = Modifier) {
             onDismissRequest = { showForgotDialog = false },
             containerColor = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(20.dp),
-            title = { Text("Forgot password?") },
+            title = { Text("Forgot your password?") },
             text = { Text("Password recovery is not available yet. Please contact your server administrator.") },
             confirmButton = {
                 TextButton(onClick = { showForgotDialog = false }) { Text("OK") }
