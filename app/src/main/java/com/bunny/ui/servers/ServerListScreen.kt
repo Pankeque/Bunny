@@ -19,7 +19,6 @@ import com.bunny.domain.model.Channel
 import com.bunny.domain.model.Server
 import com.bunny.ui.channels.ChannelViewModel
 import com.bunny.ui.channels.CreateChannelDialog
-import com.bunny.ui.common.BunnyTopBar
 import com.bunny.ui.common.ConfirmDialog
 import com.bunny.ui.common.ShimmerBox
 import com.bunny.ui.theme.BunnyAccent
@@ -94,12 +93,6 @@ fun ServersHome(
     Surface(modifier = modifier.fillMaxSize()) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
-            topBar = {
-                BunnyTopBar(
-                    subtitle = if (isLoading) "Loading…"
-                    else "${servers.size} server${if (servers.size == 1) "" else "s"}"
-                )
-            },
             bottomBar = { com.bunny.ui.BunnyBottomNav(navController) },
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { padding ->

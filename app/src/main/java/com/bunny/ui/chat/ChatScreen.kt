@@ -16,6 +16,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material3.*
@@ -341,7 +342,7 @@ private fun SendButton(enabled: Boolean, onClick: () -> Unit) {
     ) {
         Icon(
             imageVector = Icons.Outlined.Send,
-            contentDescription = "Enviar",
+            contentDescription = "Send",
             tint = if (enabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
         )
     }
@@ -354,7 +355,12 @@ private fun EmptyChatState(channelName: String, modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        com.bunny.ui.common.BunnyLogoMark(size = 48.dp)
+        Icon(
+            imageVector = Icons.Outlined.Forum,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+        )
         Spacer(modifier = Modifier.height(14.dp))
         Text(
             text = "Start a conversation",

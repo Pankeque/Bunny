@@ -26,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
+import com.bunny.ui.common.BunnyImage
 import com.bunny.ui.common.GradientButton
 import com.bunny.ui.common.SectionHeader
 import com.bunny.ui.theme.BunnyAccent
@@ -99,7 +99,7 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
                 ) {
                     val displayModel: Any = avatarUri ?: avatarUrl
                     if (avatarUri != null || avatarUrl.isNotBlank()) {
-                        AsyncImage(
+                        BunnyImage(
                             model = displayModel,
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),

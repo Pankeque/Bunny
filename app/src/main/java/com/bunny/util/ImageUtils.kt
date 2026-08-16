@@ -26,6 +26,16 @@ object ImageUtils {
         return output.toByteArray() to mimeType
     }
 
+    fun decodeDataUri(dataUri: String): Bitmap? {
+        return try {
+            val base64 = dataUri.substringAfter("base64,")
+            val bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT)
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     private fun scaleDown(bitmap: Bitmap): Bitmap {
         val maxDim = maxOf(bitmap.width, bitmap.height)
         if (maxDim <= MAX_DIMENSION) return bitmap

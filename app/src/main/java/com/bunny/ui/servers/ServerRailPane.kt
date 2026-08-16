@@ -24,9 +24,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.bunny.domain.model.Channel
 import com.bunny.domain.model.Server
+import com.bunny.ui.common.BunnyImage
 import com.bunny.ui.common.pressScale
 import com.bunny.ui.theme.BunnyAccent
 
@@ -119,7 +119,7 @@ private fun ServerRailIcon(
             contentAlignment = Alignment.Center
         ) {
             if (!server.iconUrl.isNullOrBlank()) {
-                AsyncImage(
+                BunnyImage(
                     model = server.iconUrl,
                     contentDescription = server.name,
                     modifier = Modifier.fillMaxSize(),

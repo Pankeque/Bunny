@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronRight
@@ -23,8 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
-import com.bunny.ui.common.BunnyTopBar
 import com.bunny.ui.common.ConfirmDialog
 import com.bunny.ui.common.UserAvatar
 import com.bunny.ui.theme.BunnyAccent
@@ -47,9 +44,6 @@ fun ProfileScreen(navController: NavController, modifier: Modifier = Modifier) {
     Surface(modifier = modifier.fillMaxSize()) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
-            topBar = {
-                BunnyTopBar(subtitle = "Your account")
-            },
             bottomBar = { com.bunny.ui.BunnyBottomNav(navController) }
         ) { padding ->
             Column(

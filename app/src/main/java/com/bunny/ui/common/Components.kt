@@ -1,7 +1,5 @@
 package com.bunny.ui.common
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.StartOffset
@@ -11,6 +9,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -20,7 +19,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Icon
@@ -28,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,21 +38,22 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.bunny.data.remote.socket.ConnectionState
+import com.bunny.util.ImageUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.bunny.ui.theme.AppTheme
 import com.bunny.ui.theme.BunnyAccent
 import com.bunny.ui.theme.WordmarkStyle
-
-// Official Bunny releases (APK) URL
-const val BUNNY_RELEASES_URL = "https://github.com/Pankeque/Bunny/releases"
 
 fun brandGradientColors(theme: AppTheme): List<Color> = when (theme) {
     AppTheme.DARK -> listOf(BunnyAccent, Color(0xFFB8541A))
@@ -142,61 +142,6 @@ fun BunnyWordmark(
     )
 }
 
-// Opens the APK releases page
-fun openBunnyReleases(context: android.content.Context) {
-    context.startActivity(
-        Intent(Intent.ACTION_VIEW, Uri.parse(BUNNY_RELEASES_URL))
-    )
-}
-
-// "Download APK" button — main CTA of the platform
-@Composable
-fun DownloadApkButton(
-    modifier: Modifier = Modifier,
-    compact: Boolean = false
-) {
-    val context = LocalContext.current
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (pressed) 0.95f else 1f,
-        animationSpec = tween(durationMillis = 120),
-        label = "downloadScale"
-    )
-    Box(
-        modifier = modifier
-            .scale(scale)
-            .clip(RoundedCornerShape(14.dp))
-            .background(BunnyAccent)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = androidx.compose.material.ripple.rememberRipple(
-                    color = Color.White.copy(alpha = 0.25f)
-                )
-            ) { openBunnyReleases(context) }
-            .padding(horizontal = if (compact) 10.dp else 14.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Outlined.Download,
-                contentDescription = "Download APK",
-                tint = Color.White,
-                modifier = Modifier.size(16.dp)
-            )
-            if (!compact) {
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "Download APK",
-                    color = Color.White,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        }
-    }
-}
-
 @Composable
 fun GradientLogo(theme: AppTheme, size: Dp, icon: ImageVector, modifier: Modifier = Modifier) {
     BunnyLogoMark(size = size, background = brandGradientColors(theme).first(), modifier = modifier)
@@ -262,6 +207,38 @@ fun SectionHeader(title: String, modifier: Modifier = Modifier) {
     )
 }
 
+// Image that supports both remote URLs (via Coil) and base64 data URIs
+// (avatars and server icons are stored as data URIs by the Bunny backend).
+@Composable
+fun BunnyImage(
+    model: Any?,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Crop
+) {
+    val url = model as? String
+    if (url != null && url.startsWith("data:image")) {
+        val bitmap by produceState<ImageBitmap?>(initialValue = null, key1 = url) {
+            value = withContext(Dispatchers.IO) { ImageUtils.decodeDataUri(url)?.asImageBitmap() }
+        }
+        if (bitmap != null) {
+            Image(
+                bitmap = bitmap,
+                contentDescription = contentDescription,
+                modifier = modifier,
+                contentScale = contentScale
+            )
+        }
+    } else {
+        AsyncImage(
+            model = model,
+            contentDescription = contentDescription,
+            modifier = modifier,
+            contentScale = contentScale
+        )
+    }
+}
+
 @Composable
 fun UserAvatar(
     imageUrl: String?,
@@ -285,7 +262,7 @@ fun UserAvatar(
         contentAlignment = Alignment.Center
     ) {
         if (!imageUrl.isNullOrBlank()) {
-            AsyncImage(
+            BunnyImage(
                 model = imageUrl,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),

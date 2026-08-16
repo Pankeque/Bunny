@@ -30,7 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
+import com.bunny.ui.common.BunnyImage
 import com.bunny.ui.common.ConfirmDialog
 import com.bunny.ui.common.GradientButton
 import com.bunny.ui.common.SectionHeader
@@ -114,7 +114,7 @@ fun ServerSettingScreen(navController: NavController, serverId: Int, modifier: M
                 ) {
                     val displayModel: Any = iconUri ?: serverIcon
                     if (iconUri != null || serverIcon.isNotBlank()) {
-                        AsyncImage(
+                        BunnyImage(
                             model = displayModel,
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
