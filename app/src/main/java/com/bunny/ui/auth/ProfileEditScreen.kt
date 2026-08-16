@@ -30,6 +30,7 @@ import com.bunny.ui.common.BunnyImage
 import com.bunny.ui.common.GradientButton
 import com.bunny.ui.common.SectionHeader
 import com.bunny.ui.theme.BunnyAccent
+import com.bunny.ui.theme.BunnyDialogGray
 import com.bunny.util.Constants
 import com.bunny.util.ImageUtils
 
@@ -219,6 +220,8 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
     errorMessage?.let { msg ->
         AlertDialog(
             onDismissRequest = { errorMessage = null },
+            containerColor = BunnyDialogGray,
+            shape = RoundedCornerShape(24.dp),
             title = { Text("Error") },
             text = { Text(msg) },
             confirmButton = {

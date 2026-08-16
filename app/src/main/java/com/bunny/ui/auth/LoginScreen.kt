@@ -27,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bunny.ui.common.ErrorDialog
 import com.bunny.ui.theme.BunnyAccent
+import com.bunny.ui.theme.BunnyDialogGray
 import com.bunny.util.Constants
 import com.bunny.util.ThemeUtils
 
@@ -179,7 +180,7 @@ fun LoginScreen(navController: NavController, modifier: Modifier = Modifier) {
     if (showForgotDialog) {
         AlertDialog(
             onDismissRequest = { showForgotDialog = false },
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = BunnyDialogGray,
             shape = RoundedCornerShape(20.dp),
             title = { Text("Forgot your password?") },
             text = { Text("Password recovery is not available yet. Please contact your server administrator.") },

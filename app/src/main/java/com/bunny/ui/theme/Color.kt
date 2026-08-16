@@ -24,6 +24,7 @@ val BunnyTextSecondary = Color(0xFFB3B3B8) // white/70
 val BunnyOnline = Color(0xFF3FB950)
 val BunnyOffline = Color(0xFF55555C)
 val BunnyError = Color(0xFFFF6B6B)
+val BunnyDialogGray = Color(0xFF333338)
 
 private val NightColorScheme = darkColorScheme(
     primary = BunnyAccent,

@@ -8,12 +8,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.bunny.ui.theme.BunnyDialogGray
 
 @Composable
 fun ErrorDialog(message: String, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = BunnyDialogGray,
         shape = RoundedCornerShape(24.dp),
         title = { Text("Error", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) },
         text = { Text(message, style = MaterialTheme.typography.bodyMedium) },
@@ -29,7 +30,7 @@ fun ErrorDialog(message: String, onDismiss: () -> Unit) {
 fun ConfirmDialog(title: String, message: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = BunnyDialogGray,
         shape = RoundedCornerShape(24.dp),
         title = { Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) },
         text = { Text(message, style = MaterialTheme.typography.bodyMedium) },

@@ -20,6 +20,7 @@ import androidx.navigation.NavController
 import com.bunny.ui.common.ConfirmDialog
 import com.bunny.ui.common.GradientButton
 import com.bunny.ui.common.SectionHeader
+import com.bunny.ui.theme.BunnyDialogGray
 import com.bunny.util.Constants
 import com.bunny.util.ThemeUtils
 
@@ -159,6 +160,8 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
     errorMessage?.let { msg ->
         AlertDialog(
             onDismissRequest = { errorMessage = null },
+            containerColor = BunnyDialogGray,
+            shape = RoundedCornerShape(24.dp),
             title = { Text("Error") },
             text = { Text(msg) },
             confirmButton = {

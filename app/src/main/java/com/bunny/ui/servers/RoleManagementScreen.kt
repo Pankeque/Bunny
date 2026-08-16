@@ -24,6 +24,7 @@ import androidx.navigation.NavController
 import com.bunny.domain.model.Role
 import com.bunny.ui.common.ConfirmDialog
 import com.bunny.ui.common.SectionHeader
+import com.bunny.ui.theme.BunnyDialogGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -142,6 +143,8 @@ fun RoleManagementScreen(navController: NavController, serverId: Int, modifier: 
     errorMessage?.let { msg ->
         AlertDialog(
             onDismissRequest = { errorMessage = null },
+            containerColor = BunnyDialogGray,
+            shape = RoundedCornerShape(24.dp),
             title = { Text("Error") },
             text = { Text(msg) },
             confirmButton = {
@@ -194,7 +197,7 @@ fun CreateRoleDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = BunnyDialogGray,
         shape = RoundedCornerShape(24.dp),
         title = { Text("Create role", fontWeight = FontWeight.Bold) },
         text = {

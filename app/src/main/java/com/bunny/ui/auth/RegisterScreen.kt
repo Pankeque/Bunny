@@ -27,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bunny.ui.common.ErrorDialog
 import com.bunny.ui.theme.BunnyAccent
+import com.bunny.ui.theme.BunnyDialogGray
 import com.bunny.util.Constants
 import com.bunny.util.ThemeUtils
 
@@ -185,7 +186,7 @@ fun RegisterScreen(navController: NavController, modifier: Modifier = Modifier) 
     if (showHelpDialog) {
         AlertDialog(
             onDismissRequest = { showHelpDialog = false },
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = BunnyDialogGray,
             shape = RoundedCornerShape(20.dp),
             title = { Text("Need some help?") },
             text = { Text("If you run into any issues, please contact your server administrator.") },

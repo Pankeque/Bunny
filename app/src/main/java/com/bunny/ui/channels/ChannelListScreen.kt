@@ -11,6 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.bunny.ui.servers.ServersHome
+import com.bunny.ui.theme.BunnyDialogGray
 
 // Channel list (mobile): delegates to the servers/channels home with the active server.
 @Composable
@@ -31,7 +32,7 @@ fun CreateChannelDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
     var name by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = BunnyDialogGray,
         shape = RoundedCornerShape(24.dp),
         title = { Text("Create text channel", fontWeight = FontWeight.SemiBold) },
         text = {

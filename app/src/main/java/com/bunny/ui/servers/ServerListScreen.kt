@@ -22,6 +22,7 @@ import com.bunny.ui.channels.CreateChannelDialog
 import com.bunny.ui.common.ConfirmDialog
 import com.bunny.ui.common.ShimmerBox
 import com.bunny.ui.theme.BunnyAccent
+import com.bunny.ui.theme.BunnyDialogGray
 import kotlinx.coroutines.launch
 
 // Mobile-first home: server sidebar (rail) + channels of the active server.
@@ -256,6 +257,8 @@ fun ServersHome(
     errorMessage?.let { msg ->
         AlertDialog(
             onDismissRequest = { errorMessage = null },
+            containerColor = BunnyDialogGray,
+            shape = RoundedCornerShape(24.dp),
             title = { Text("Error") },
             text = { Text(msg) },
             confirmButton = {
@@ -339,7 +342,7 @@ fun CreateServerDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
     var name by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = BunnyDialogGray,
         shape = RoundedCornerShape(24.dp),
         title = { Text("Create server", fontWeight = FontWeight.SemiBold) },
         text = {
@@ -368,7 +371,7 @@ fun JoinServerDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit, errorMe
     var code by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = BunnyDialogGray,
         shape = RoundedCornerShape(24.dp),
         title = { Text("Join server", fontWeight = FontWeight.SemiBold) },
         text = {
@@ -403,7 +406,7 @@ fun JoinServerDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit, errorMe
 fun InviteCodeDialog(server: Server, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = BunnyDialogGray,
         shape = RoundedCornerShape(24.dp),
         title = { Text("Server created", fontWeight = FontWeight.SemiBold) },
         text = {
