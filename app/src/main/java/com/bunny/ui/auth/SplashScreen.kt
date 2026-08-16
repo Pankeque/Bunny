@@ -12,7 +12,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.bunny.ui.common.BunnyLogoMark
 import com.bunny.ui.common.BunnyWordmark
 import com.bunny.util.Constants
 import kotlinx.coroutines.delay
@@ -44,8 +43,6 @@ fun SplashScreen(navController: NavController, modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            BunnyLogoMark(size = 72.dp)
-            Spacer(modifier = Modifier.height(16.dp))
             BunnyWordmark(fontSize = 34.sp)
             Spacer(modifier = Modifier.height(10.dp))
             Text(

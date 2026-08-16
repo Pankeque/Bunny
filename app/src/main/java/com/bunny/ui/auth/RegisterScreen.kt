@@ -27,7 +27,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bunny.ui.common.ErrorDialog
 import com.bunny.ui.theme.BunnyAccent
-import com.bunny.ui.theme.BunnySurfaceVariant
 import com.bunny.util.Constants
 import com.bunny.util.ThemeUtils
 
@@ -105,70 +104,63 @@ fun RegisterScreen(navController: NavController, modifier: Modifier = Modifier) 
                 )
                 Spacer(modifier = Modifier.height(28.dp))
 
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = BunnySurfaceVariant),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Column(modifier = Modifier.padding(20.dp)) {
-                        AuthTextField(
-                            value = username,
-                            onValueChange = { username = it; usernameError = null },
-                            label = "Username",
-                            leadingIcon = Icons.Outlined.Person,
-                            isError = usernameError != null,
-                            supportingText = usernameError,
-                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    AuthTextField(
+                        value = username,
+                        onValueChange = { username = it; usernameError = null },
+                        label = "Username",
+                        leadingIcon = Icons.Outlined.Person,
+                        isError = usernameError != null,
+                        supportingText = usernameError,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                        AuthTextField(
-                            value = password,
-                            onValueChange = { password = it; passwordError = null },
-                            label = "Password",
-                            leadingIcon = Icons.Outlined.Lock,
-                            trailingIcon = {
-                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                    Icon(
-                                        imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
-                                    )
-                                }
-                            },
-                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                            keyboardActions = KeyboardActions(onDone = { submit() }),
-                            isError = passwordError != null,
-                            supportingText = passwordError
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        Button(
-                            onClick = { submit() },
-                            enabled = !isLoading && username.isNotBlank() && password.isNotBlank(),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(52.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = BunnyAccent,
-                                contentColor = Color.White,
-                                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                            )
-                        ) {
-                            if (isLoading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp),
-                                    color = Color.White,
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Text(
-                                    text = if (isLoading) "Creating account…" else "Sign up",
-                                    fontWeight = FontWeight.SemiBold
+                    AuthTextField(
+                        value = password,
+                        onValueChange = { password = it; passwordError = null },
+                        label = "Password",
+                        leadingIcon = Icons.Outlined.Lock,
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                    contentDescription = if (passwordVisible) "Hide password" else "Show password"
                                 )
                             }
+                        },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { submit() }),
+                        isError = passwordError != null,
+                        supportingText = passwordError
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Button(
+                        onClick = { submit() },
+                        enabled = !isLoading && username.isNotBlank() && password.isNotBlank(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = BunnyAccent,
+                            contentColor = Color.White,
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = if (isLoading) "Creating account…" else "Sign up",
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
                     }
                 }
