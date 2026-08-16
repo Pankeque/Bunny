@@ -221,9 +221,10 @@ fun BunnyImage(
         val bitmap by produceState<ImageBitmap?>(initialValue = null, key1 = url) {
             value = withContext(Dispatchers.IO) { ImageUtils.decodeDataUri(url)?.asImageBitmap() }
         }
-        if (bitmap != null) {
+        val decoded = bitmap
+        if (decoded != null) {
             Image(
-                bitmap = bitmap,
+                bitmap = decoded,
                 contentDescription = contentDescription,
                 modifier = modifier,
                 contentScale = contentScale
