@@ -409,7 +409,7 @@ private fun AddFriendDialog(
                                     modifier = Modifier.weight(1f)
                                 )
                             }
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                         }
                 }
 

@@ -178,6 +178,7 @@ fun BunnyNavHost() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BunnyBottomNav(navController: NavController) {
     val items = listOf(Screen.Servers, Screen.Friends, Screen.Messages, Screen.Profile)

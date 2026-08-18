@@ -139,6 +139,18 @@ class ChatViewModel @Inject constructor(
                     is SocketEvent.GatewayError -> {
                         Log.w("Chat", "Gateway error: ${event.code} / ${event.message}")
                     }
+                    is SocketEvent.FriendRequestReceived,
+                    is SocketEvent.FriendRequestAccepted,
+                    is SocketEvent.FriendRequestDeclined,
+                    is SocketEvent.FriendRequestCancelled,
+                    is SocketEvent.FriendRemoved,
+                    is SocketEvent.FriendBlocked,
+                    is SocketEvent.FriendPresenceChanged,
+                    is SocketEvent.FriendPresenceSnapshot,
+                    is SocketEvent.DirectMessageReceived,
+                    is SocketEvent.DirectTyping -> {
+                        // Handled by the friends / direct-message collectors.
+                    }
                 }
             }
         }

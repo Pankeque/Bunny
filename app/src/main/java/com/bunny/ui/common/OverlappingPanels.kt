@@ -87,25 +87,11 @@ class OverlappingPanelsState internal constructor(
         scope.launch { progress.snapTo(next.coerceIn(0f, 2f)) }
     }
 
-    suspend fun settle(velocityX: Float) {
+    suspend fun settle() {
         val current = progress.value
         val target = when {
-            current <= 1f -> {
-                when {
-                    velocityX < -1200f -> 1f
-                    velocityX > 1200f -> 0f
-                    current < 0.5f -> 0f
-                    else -> 1f
-                }
-            }
-            else -> {
-                when {
-                    velocityX > 1200f -> 1f
-                    velocityX < -1200f -> 2f
-                    current < 1.5f -> 1f
-                    else -> 2f
-                }
-            }
+            current <= 1f -> if (current < 0.5f) 0f else 1f
+            else -> if (current < 1.5f) 1f else 2f
         }
         animateTo(target)
     }
@@ -196,8 +182,8 @@ fun OverlappingPanelsHost(
                     state = rememberDraggableState { delta ->
                         state.onDrag(delta)
                     },
-                    onDragStopped = { velocity ->
-                        scope.launch { state.settle(velocity.x) }
+                    onDragStopped = {
+                        scope.launch { state.settle() }
                     }
                 )
         ) {
