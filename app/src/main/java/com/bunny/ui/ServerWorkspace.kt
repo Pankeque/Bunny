@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,11 +38,11 @@ import com.bunny.util.isMasterDetail
 import kotlinx.coroutines.launch
 
 // Three-panel Discord-style workspace:
-//   start panel  -> server rail (slides in from the left)
-//   center panel -> channel list + chat (full-screen base layer)
+//   start panel  -> server rail + channel list (slides in from the left)
+//   center panel -> chat (full-screen base layer)
 //   end panel    -> members / settings (slides in from the right)
-// Swiping horizontally on the center panel opens and closes the side panels
-// with a spring animation. The back button closes the panels first.
+// Swiping horizontally anywhere opens and closes the side panels with a
+// spring animation. The back button closes the panels first.
 @Composable
 fun ServerWorkspace(
     navController: NavHostController,
@@ -57,7 +56,6 @@ fun ServerWorkspace(
     val chatViewModel: ChatViewModel = hiltViewModel()
     val connectionState by chatViewModel.connectionState.collectAsStateWithLifecycle()
     val wide = isMasterDetail()
-    val density = LocalDensity.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -73,12 +71,10 @@ fun ServerWorkspace(
     var createdServer by remember { mutableStateOf<Server?>(null) }
 
     val panelsState = rememberOverlappingPanelsState(
-        startPanelWidth = 72.dp,
+        startPanelWidth = 333.dp,
         endPanelWidth = 272.dp,
         initialValue = if (wide) 0f else 1f
     )
-    val startVisible by panelsState.startVisiblePx
-    val railPad = with(density) { startVisible.toDp() }
 
     LaunchedEffect(Unit) {
         serversViewModel.loadServers { result ->
@@ -124,108 +120,110 @@ fun ServerWorkspace(
                     .fillMaxSize()
                     .padding(padding),
                 startPanel = {
-                    ServerRail(
-                        servers = servers,
-                        selectedServerId = selectedServerId,
-                        onServerClick = { server ->
-                            onServerSelected(server.id)
-                            channelServerId = server.id
-                            channelsViewModel.loadChannels(server.id) { r -> r.onSuccess { channels = it } }
-                        },
-                        onCreateClick = { showCreateDialog = true },
-                        onJoinClick = { showJoinDialog = true },
-                        modifier = Modifier.fillMaxHeight(),
-                        bottomExtra = {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Box(
-                                modifier = Modifier
-                                    .size(46.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
-                                    .clickable {
-                                        navController.navigate("profile") {
-                                            launchSingleTop = true
-                                        }
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Person,
-                                    contentDescription = "Profile",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
-                        }
-                    )
-                },
-                centerPanel = {
                     Row(modifier = Modifier.fillMaxSize()) {
-                        Box(
-                            modifier = Modifier
-                                .width(if (wide) 280.dp else 200.dp)
-                                .padding(start = railPad)
-                        ) {
-                            ChannelPane(
-                                server = activeServer,
-                                channels = channels,
-                                selectedChannelId = selectedChannelId,
-                                onChannelClick = { channel ->
-                                    onChannelSelected(channel.id)
-                                },
-                                onChannelSettings = { channel ->
-                                    val serverId = activeServer?.id ?: channel.serverId
-                                    navController.navigate("channels/$serverId/${channel.id}/settings")
-                                },
-                                onChannelDelete = { channel -> channelToDelete = channel },
-                                onCreateChannel = { showCreateChannelDialog = true },
-                                onServerSettings = {
-                                    val serverId = activeServer?.id
-                                    if (serverId != null) {
-                                        navController.navigate("servers/$serverId/settings")
-                                    }
-                                },
-                                onLeaveServer = { intentToLeaveServer = true },
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
+                        ServerRail(
+                            servers = servers,
+                            selectedServerId = selectedServerId,
+                            onServerClick = { server ->
+                                onServerSelected(server.id)
+                                channelServerId = server.id
+                                channelsViewModel.loadChannels(server.id) { r -> r.onSuccess { channels = it } }
+                            },
+                            onCreateClick = { showCreateDialog = true },
+                            onJoinClick = { showJoinDialog = true },
+                            modifier = Modifier.width(72.dp),
+                            bottomExtra = {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .size(46.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
+                                        .clickable {
+                                            navController.navigate("profile") {
+                                                launchSingleTop = true
+                                            }
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Person,
+                                        contentDescription = "Profile",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
+                            }
+                        )
                         Box(
                             modifier = Modifier
                                 .width(1.dp)
                                 .fillMaxHeight()
-                                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                                .background(MaterialTheme.colorScheme.outlineVariant)
                         )
-                        if (selectedChannelId != null) {
-                            ChatScreen(
-                                navController = navController,
-                                channelId = selectedChannelId,
-                                serverId = activeServer?.id ?: -1,
-                                modifier = Modifier.weight(1f),
-                                embedded = true,
-                                onMembersClick = { scope.launch { panelsState.openEndPanel() } }
-                            )
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxHeight()
-                                    .background(MaterialTheme.colorScheme.background),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Tag,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                                        modifier = Modifier.size(44.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                    Text(
-                                        text = "Select a channel to start chatting",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                        ChannelPane(
+                            server = activeServer,
+                            channels = channels,
+                            selectedChannelId = selectedChannelId,
+                            onChannelClick = { channel ->
+                                onChannelSelected(channel.id)
+                                if (!wide) {
+                                    scope.launch { panelsState.closePanels() }
                                 }
+                            },
+                            onChannelSettings = { channel ->
+                                val serverId = activeServer?.id ?: channel.serverId
+                                navController.navigate("channels/$serverId/${channel.id}/settings")
+                            },
+                            onChannelDelete = { channel -> channelToDelete = channel },
+                            onCreateChannel = { showCreateChannelDialog = true },
+                            onServerSettings = {
+                                val serverId = activeServer?.id
+                                if (serverId != null) {
+                                    navController.navigate("servers/$serverId/settings")
+                                }
+                            },
+                            onLeaveServer = { intentToLeaveServer = true },
+                            modifier = Modifier.width(260.dp)
+                        )
+                    }
+                },
+                centerPanel = {
+                    if (selectedChannelId != null) {
+                        ChatScreen(
+                            navController = navController,
+                            channelId = selectedChannelId,
+                            serverId = activeServer?.id ?: -1,
+                            modifier = Modifier.fillMaxSize(),
+                            embedded = true,
+                            onMembersClick = { scope.launch { panelsState.openEndPanel() } }
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.background),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Tag,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                    modifier = Modifier.size(44.dp)
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = "Select a channel to start chatting",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = "Swipe right to open the channel list",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                )
                             }
                         }
                     }

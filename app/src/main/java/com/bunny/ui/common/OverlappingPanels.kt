@@ -150,7 +150,7 @@ fun rememberOverlappingPanelsState(
  *
  * @param state state driving panel offsets, created with [rememberOverlappingPanelsState]
  * @param startPanel content of the start panel (slides in from the left)
- * @param centerPanel base layer that stays full-screen (channels + chat)
+ * @param centerPanel full-screen base layer (chat)
  * @param endPanel content of the end panel (slides in from the right)
  */
 @OptIn(ExperimentalFoundationApi::class)
@@ -170,23 +170,22 @@ fun OverlappingPanelsHost(
         scope.launch { state.handleBack() }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
-        // Center layer: full-screen, and the only layer that responds to the
-        // horizontal swipe that opens/closes the side panels. Children that
-        // scroll vertically (channel list, message list) keep their gestures.
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .draggable(
-                    orientation = Orientation.Horizontal,
-                    state = rememberDraggableState { delta ->
-                        state.onDrag(delta)
-                    },
-                    onDragStopped = {
-                        scope.launch { state.settle() }
-                    }
-                )
-        ) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .draggable(
+                orientation = Orientation.Horizontal,
+                state = rememberDraggableState { delta ->
+                    state.onDrag(delta)
+                },
+                onDragStopped = {
+                    scope.launch { state.settle() }
+                }
+            )
+    ) {
+        // Center layer: full-screen base content (chat). Vertical scroll
+        // children (channel list, message list) keep their own gestures.
+        Box(Modifier.fillMaxSize()) {
             centerPanel()
         }
 
