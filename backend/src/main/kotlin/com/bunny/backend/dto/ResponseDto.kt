@@ -66,3 +66,29 @@ data class UpdateChannelRequest(
     val name: String? = null,
     val type: String? = null
 )
+
+@Serializable
+data class FriendshipResponse(
+    val id: Int,
+    val user: UserResponse,
+    val status: String,
+    val initiatorId: Int,
+    val createdAt: String
+)
+
+@Serializable
+data class DirectConversationResponse(
+    val id: Int,
+    val user: UserResponse,
+    val lastMessage: DirectMessageResponse? = null
+)
+
+@Serializable
+data class DirectMessageResponse(
+    val id: Int,
+    val conversationId: Int,
+    val senderId: Int,
+    val user: UserResponse? = null,
+    val content: String,
+    val createdAt: String
+)

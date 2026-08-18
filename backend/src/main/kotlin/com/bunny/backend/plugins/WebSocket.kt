@@ -2,10 +2,15 @@ package com.bunny.backend.plugins
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.bunny.backend.dto.UserResponse
+import com.bunny.backend.mapper.toResponse
 import com.bunny.backend.model.ServerMemberEntity
 import com.bunny.backend.model.ServerMembers
 import com.bunny.backend.service.ChannelService
+import com.bunny.backend.service.DirectMessageService
+import com.bunny.backend.service.FriendService
 import com.bunny.backend.service.MessageService
+import com.bunny.backend.service.UserService
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
@@ -32,7 +37,11 @@ data class WsData(
     val online: Boolean? = null,
     val users: List<Int>? = null,
     val code: String? = null,
-    val error: String? = null
+    val error: String? = null,
+    val conversationId: Int? = null,
+    val isTyping: Boolean? = null,
+    val user: UserResponse? = null,
+    val friendshipId: Int? = null
 )
 
 @Serializable
@@ -91,6 +100,8 @@ object WebSocketConnectionManager {
     }
 
     fun onlineUsersInChannel(channelId: Int): Set<Int> = channelSubscriptions[channelId] ?: emptySet()
+
+    fun isOnline(userId: Int): Boolean = sessions.containsKey(userId)
 
     fun isDuplicateSend(userId: Int, nonce: String?): Boolean {
         if (nonce.isNullOrBlank()) return false
@@ -166,8 +177,30 @@ fun Application.configureWebSockets() {
             val manager = WebSocketConnectionManager
             manager.addConnection(userId, this)
 
+            suspend fun notifyFriendPresence(targetUserId: Int, online: Boolean) {
+                val friends = transaction { FriendService.acceptedFriendIds(targetUserId) }
+                val event = WsMessage(
+                    op = "event",
+                    type = "friend_presence_update",
+                    data = WsData(userId = targetUserId, online = online)
+                )
+                friends.forEach { friendId ->
+                    if (manager.isOnline(friendId)) {
+                        manager.sendToUser(friendId, event)
+                    }
+                }
+            }
+
             send(Json.encodeToString(WsMessage(op = "ready", data = WsData(userId = userId))))
             send(Json.encodeToString(WsMessage(op = "hello", data = WsData(heartbeatInterval = 30_000L))))
+
+            notifyFriendPresence(userId, true)
+            val onlineFriendIds = transaction { FriendService.acceptedFriendIds(userId) }.filter { manager.isOnline(it) }
+            send(Json.encodeToString(WsMessage(
+                op = "event",
+                type = "friend_presence_snapshot",
+                data = WsData(users = onlineFriendIds)
+            )))
 
             fun isChannelMember(channelId: Int): Boolean = transaction {
                 val channel = ChannelService.findById(channelId) ?: return@transaction false
@@ -267,6 +300,69 @@ fun Application.configureWebSockets() {
                             )
                             manager.sendToChannel(channelId, event)
                         }
+
+                        "dm_send_message" -> {
+                            val conversationId = data.conversationId ?: continue
+                            val content = data.content?.trim() ?: continue
+                            if (content.isEmpty()) {
+                                send(Json.encodeToString(errorEvent("invalid_message", "Message cannot be empty")))
+                                continue
+                            }
+                            if (!DirectMessageService.isParticipant(conversationId, userId)) {
+                                send(Json.encodeToString(errorEvent("forbidden", "Not a participant in this conversation")))
+                                continue
+                            }
+                            if (manager.isDuplicateSend(userId, data.nonce)) {
+                                continue
+                            }
+                            val savedMessage = transaction {
+                                DirectMessageService.create(
+                                    conversationId = conversationId,
+                                    senderId = userId,
+                                    content = content
+                                )
+                            }
+                            val sender = UserService.findById(userId)
+                            val event = WsMessage(
+                                op = "event",
+                                type = "dm_message_received",
+                                data = WsData(
+                                    conversationId = savedMessage.conversationId.value,
+                                    messageId = savedMessage.id.value,
+                                    userId = savedMessage.senderId.value,
+                                    content = savedMessage.content,
+                                    nonce = data.nonce,
+                                    sequence = savedMessage.id.value.toLong(),
+                                    timestamp = savedMessage.createdAt.toString(),
+                                    user = sender?.toResponse()
+                                )
+                            )
+                            manager.sendToUser(userId, event)
+                            DirectMessageService.otherParticipantId(conversationId, userId)?.let { otherId ->
+                                manager.sendToUser(otherId, event)
+                            }
+                        }
+
+                        "dm_typing" -> {
+                            val conversationId = data.conversationId ?: continue
+                            val isTyping = data.isTyping ?: continue
+                            if (!DirectMessageService.isParticipant(conversationId, userId)) continue
+                            val otherId = DirectMessageService.otherParticipantId(conversationId, userId) ?: continue
+                            manager.sendToUser(otherId, WsMessage(
+                                op = "event",
+                                type = "dm_typing",
+                                data = WsData(conversationId = conversationId, userId = userId, isTyping = isTyping)
+                            ))
+                        }
+
+                        "request_presence" -> {
+                            val onlineFriends = transaction { FriendService.acceptedFriendIds(userId) }.filter { manager.isOnline(it) }
+                            send(Json.encodeToString(WsMessage(
+                                op = "event",
+                                type = "friend_presence_snapshot",
+                                data = WsData(users = onlineFriends)
+                            )))
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -279,6 +375,9 @@ fun Application.configureWebSockets() {
                         type = "presence_update",
                         data = WsData(channelId = channelId, userId = userId, online = false)
                     ))
+                }
+                if (!manager.isOnline(userId)) {
+                    notifyFriendPresence(userId, false)
                 }
                 try {
                     close(CloseReason(CloseReason.Codes.NORMAL, "Bye"))

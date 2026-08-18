@@ -12,6 +12,8 @@ fun Application.configureRouting() {
             channelRoutes()
             messageRoutes()
             userRoutes()
+            friendRoutes()
+            dmRoutes()
         }
     }
 }

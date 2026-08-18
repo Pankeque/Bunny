@@ -4,6 +4,9 @@ import com.bunny.backend.dto.*
 import com.bunny.backend.mapper.toResponse
 import com.bunny.backend.model.*
 import com.bunny.backend.plugins.generateToken
+import com.bunny.backend.plugins.WebSocketConnectionManager
+import com.bunny.backend.plugins.WsMessage
+import com.bunny.backend.plugins.WsData
 import com.bunny.backend.service.*
 import com.bunny.backend.util.PasswordUtils
 import org.jetbrains.exposed.dao.id.EntityID
@@ -407,6 +410,17 @@ fun Route.messageRoutes() {
 
 fun Route.userRoutes() {
         route("/api/users") {
+            get("/search") {
+                val user = call.principal<UserEntity>() ?: return@get call.respond(HttpStatusCode.Unauthorized)
+                val query = call.request.queryParameters["q"]?.trim() ?: ""
+                if (query.isBlank()) {
+                    call.respond(emptyList<UserResponse>())
+                    return@get
+                }
+                val results = UserService.search(query, user.id.value)
+                call.respond(results.map { it.toResponse() })
+            }
+
             put("/me") {
                 val user = call.principal<UserEntity>() ?: return@put call.respond(HttpStatusCode.Unauthorized)
                 val request = call.receive<UpdateUserRequest>()
@@ -433,4 +447,241 @@ fun Route.userRoutes() {
                 }
             }
         }
+}
+
+fun Route.friendRoutes() {
+    route("/api/friends") {
+        get {
+            val user = call.principal<UserEntity>() ?: return@get call.respond(HttpStatusCode.Unauthorized)
+            val friends = FriendService.listFriends(user.id.value)
+            call.respond(friends.map { it.toResponse(user.id.value) })
+        }
+
+        get("/requests") {
+            val user = call.principal<UserEntity>() ?: return@get call.respond(HttpStatusCode.Unauthorized)
+            val incoming = FriendService.listPendingIncoming(user.id.value)
+            call.respond(incoming.map { it.toResponse(user.id.value) })
+        }
+
+        get("/requests/sent") {
+            val user = call.principal<UserEntity>() ?: return@get call.respond(HttpStatusCode.Unauthorized)
+            val outgoing = FriendService.listPendingOutgoing(user.id.value)
+            call.respond(outgoing.map { it.toResponse(user.id.value) })
+        }
+
+        post("/requests") {
+            val user = call.principal<UserEntity>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
+            val request = call.receive<FriendRequestDto>()
+            if (request.username.isBlank()) {
+                return@post call.respond(HttpStatusCode.BadRequest, "Username cannot be empty")
+            }
+            val target = UserService.findByUsername(request.username)
+                ?: return@post call.respond(HttpStatusCode.NotFound, "User not found")
+            if (target.id.value == user.id.value) {
+                return@post call.respond(HttpStatusCode.BadRequest, "You cannot add yourself")
+            }
+            val existing = FriendService.relationship(user.id.value, target.id.value)
+            if (existing != null && existing.status == "blocked") {
+                if (existing.initiatorId == user.id.value) {
+                    return@post call.respond(HttpStatusCode.Conflict, "You have blocked this user")
+                }
+                return@post call.respond(HttpStatusCode.Forbidden, "This user has blocked you")
+            }
+            if (existing != null && existing.status == "accepted") {
+                return@post call.respond(HttpStatusCode.Conflict, "You are already friends")
+            }
+            val autoAccepted = existing != null && existing.status == "pending" && existing.initiatorId != user.id.value
+            val friendship = FriendService.sendRequest(user.id.value, target.id.value)
+            val response = (friendship to target).toResponse(user.id.value)
+            if (autoAccepted) {
+                WebSocketConnectionManager.sendToUser(target.id.value, WsMessage(
+                    op = "event",
+                    type = "friend_request_accepted",
+                    data = WsData(friendshipId = friendship.id.value, user = user.toResponse())
+                ))
+                call.respond(HttpStatusCode.OK, response)
+            } else {
+                WebSocketConnectionManager.sendToUser(target.id.value, WsMessage(
+                    op = "event",
+                    type = "friend_request_received",
+                    data = WsData(friendshipId = friendship.id.value, user = user.toResponse())
+                ))
+                call.respond(HttpStatusCode.Created, response)
+            }
+        }
+
+        post("/requests/{id}/accept") {
+            val friendshipId = call.parameters["id"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
+            val user = call.principal<UserEntity>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
+            val friendship = FriendService.findById(friendshipId)
+                ?: return@post call.respond(HttpStatusCode.NotFound, "Request not found")
+            if (friendship.status != "pending") {
+                return@post call.respond(HttpStatusCode.Conflict, "Request is no longer pending")
+            }
+            if (friendship.initiatorId == user.id.value) {
+                return@post call.respond(HttpStatusCode.BadRequest, "You cannot accept your own request")
+            }
+            FriendService.acceptRequest(friendshipId)
+            WebSocketConnectionManager.sendToUser(friendship.initiatorId, WsMessage(
+                op = "event",
+                type = "friend_request_accepted",
+                data = WsData(friendshipId = friendshipId, user = user.toResponse())
+            ))
+            val other = UserEntity.findById(friendship.initiatorId)
+            if (other != null) {
+                call.respond((friendship to other).toResponse(user.id.value))
+            } else {
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+
+        post("/requests/{id}/decline") {
+            val friendshipId = call.parameters["id"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
+            val user = call.principal<UserEntity>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
+            val friendship = FriendService.findById(friendshipId)
+                ?: return@post call.respond(HttpStatusCode.NotFound, "Request not found")
+            if (friendship.status != "pending") {
+                return@post call.respond(HttpStatusCode.Conflict, "Request is no longer pending")
+            }
+            if (friendship.initiatorId == user.id.value) {
+                return@post call.respond(HttpStatusCode.BadRequest, "You cannot decline your own request")
+            }
+            FriendService.deleteRequest(friendshipId)
+            WebSocketConnectionManager.sendToUser(friendship.initiatorId, WsMessage(
+                op = "event",
+                type = "friend_request_declined",
+                data = WsData(friendshipId = friendshipId)
+            ))
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/requests/{id}/cancel") {
+            val friendshipId = call.parameters["id"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
+            val user = call.principal<UserEntity>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
+            val friendship = FriendService.findById(friendshipId)
+                ?: return@post call.respond(HttpStatusCode.NotFound, "Request not found")
+            if (friendship.status != "pending") {
+                return@post call.respond(HttpStatusCode.Conflict, "Request is no longer pending")
+            }
+            if (friendship.initiatorId != user.id.value) {
+                return@post call.respond(HttpStatusCode.BadRequest, "You cannot cancel this request")
+            }
+            val otherId = FriendService.otherUserId(friendship, user.id.value)
+            FriendService.deleteRequest(friendshipId)
+            WebSocketConnectionManager.sendToUser(otherId, WsMessage(
+                op = "event",
+                type = "friend_request_cancelled",
+                data = WsData(friendshipId = friendshipId)
+            ))
+            call.respond(HttpStatusCode.OK)
+        }
+
+        delete("/{userId}") {
+            val otherId = call.parameters["userId"]?.toIntOrNull() ?: return@delete call.respond(HttpStatusCode.BadRequest)
+            val user = call.principal<UserEntity>() ?: return@delete call.respond(HttpStatusCode.Unauthorized)
+            if (!FriendService.removeFriend(user.id.value, otherId)) {
+                return@delete call.respond(HttpStatusCode.NotFound, "Friendship not found")
+            }
+            WebSocketConnectionManager.sendToUser(otherId, WsMessage(
+                op = "event",
+                type = "friend_removed",
+                data = WsData(userId = user.id.value)
+            ))
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/{userId}/block") {
+            val otherId = call.parameters["userId"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
+            val user = call.principal<UserEntity>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
+            if (otherId == user.id.value) {
+                return@post call.respond(HttpStatusCode.BadRequest, "You cannot block yourself")
+            }
+            FriendService.blockUser(user.id.value, otherId)
+            WebSocketConnectionManager.sendToUser(otherId, WsMessage(
+                op = "event",
+                type = "friend_blocked",
+                data = WsData(userId = user.id.value)
+            ))
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/{userId}/unblock") {
+            val otherId = call.parameters["userId"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
+            val user = call.principal<UserEntity>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
+            FriendService.unblockUser(user.id.value, otherId)
+            call.respond(HttpStatusCode.OK)
+        }
+    }
+}
+
+fun Route.dmRoutes() {
+    route("/api/dms") {
+        get("/conversations") {
+            val user = call.principal<UserEntity>() ?: return@get call.respond(HttpStatusCode.Unauthorized)
+            val conversations = DirectMessageService.listConversationsFor(user.id.value)
+            val responses = conversations.map { (conv, other) ->
+                val last = DirectMessageService.lastMessage(conv.id.value)
+                val lastResponse = last?.let { msg ->
+                    val sender = DirectMessageService.senderUser(msg)
+                    if (sender != null) (msg to sender).toResponse() else null
+                }
+                (conv to other).toResponse(user.id.value, lastResponse)
+            }
+            call.respond(responses)
+        }
+
+        post("/conversations/{userId}") {
+            val otherId = call.parameters["userId"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
+            val user = call.principal<UserEntity>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
+            if (otherId == user.id.value) {
+                return@post call.respond(HttpStatusCode.BadRequest, "You cannot message yourself")
+            }
+            val conv = DirectMessageService.getOrCreateConversation(user.id.value, otherId)
+                ?: return@post call.respond(HttpStatusCode.Forbidden, "You can only message friends")
+            val other = UserService.findById(otherId) ?: return@post call.respond(HttpStatusCode.NotFound)
+            call.respond((conv to other).toResponse(user.id.value))
+        }
+
+        get("/conversations/{id}/messages") {
+            val conversationId = call.parameters["id"]?.toIntOrNull() ?: return@get call.respond(HttpStatusCode.BadRequest)
+            val user = call.principal<UserEntity>() ?: return@get call.respond(HttpStatusCode.Unauthorized)
+            if (!DirectMessageService.isParticipant(conversationId, user.id.value)) {
+                return@get call.respond(HttpStatusCode.Forbidden)
+            }
+            val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
+            val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 50
+            val messages = DirectMessageService.getMessages(conversationId, limit, (page - 1) * limit)
+            call.respond(messages.map { it.toResponse() })
+        }
+
+        post("/conversations/{id}/messages") {
+            val conversationId = call.parameters["id"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
+            val user = call.principal<UserEntity>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
+            val request = call.receive<SendDirectMessageRequest>()
+            if (request.content.isBlank()) {
+                return@post call.respond(HttpStatusCode.BadRequest, "Message cannot be empty")
+            }
+            if (!DirectMessageService.isParticipant(conversationId, user.id.value)) {
+                return@post call.respond(HttpStatusCode.Forbidden)
+            }
+            val message = DirectMessageService.create(conversationId, user.id.value, request.content)
+            val event = WsMessage(
+                op = "event",
+                type = "dm_message_received",
+                data = WsData(
+                    conversationId = message.conversationId.value,
+                    messageId = message.id.value,
+                    userId = message.senderId.value,
+                    content = message.content,
+                    timestamp = message.createdAt.toString(),
+                    user = user.toResponse()
+                )
+            )
+            val otherId = DirectMessageService.otherParticipantId(conversationId, user.id.value)
+            if (otherId != null) {
+                WebSocketConnectionManager.sendToUser(otherId, event)
+            }
+            call.respond(HttpStatusCode.Created, (message to user).toResponse())
+        }
+    }
 }

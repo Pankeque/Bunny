@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.room.Room
 import com.bunny.data.local.BunnyDatabase
+import com.bunny.data.local.UnreadStore
 import com.bunny.data.local.dao.ChannelDao
 import com.bunny.data.local.dao.MessageDao
 import com.bunny.data.local.dao.RefreshTokenDao
@@ -15,12 +16,16 @@ import com.bunny.data.remote.auth.TokenRefreshAuthenticator
 import com.bunny.data.remote.socket.SocketService
 import com.bunny.data.repository.AuthRepositoryImpl
 import com.bunny.data.repository.ChannelRepositoryImpl
+import com.bunny.data.repository.DirectMessageRepositoryImpl
+import com.bunny.data.repository.FriendRepositoryImpl
 import com.bunny.data.repository.MessageRepositoryImpl
 import com.bunny.data.repository.ServerRepositoryImpl
 import com.bunny.data.repository.UserRepositoryImpl
 import com.bunny.data.repository.RoleRepositoryImpl
 import com.bunny.domain.repository.AuthRepository
 import com.bunny.domain.repository.ChannelRepository
+import com.bunny.domain.repository.DirectMessageRepository
+import com.bunny.domain.repository.FriendRepository
 import com.bunny.domain.repository.MessageRepository
 import com.bunny.domain.repository.RoleRepository
 import com.bunny.domain.repository.ServerRepository
@@ -142,6 +147,22 @@ object AppModule {
     fun provideRoleRepository(api: BunnyApi): RoleRepository {
         return RoleRepositoryImpl(api)
     }
+
+    @Provides
+    @Singleton
+    fun provideFriendRepository(api: BunnyApi): FriendRepository {
+        return FriendRepositoryImpl(api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDirectMessageRepository(api: BunnyApi): DirectMessageRepository {
+        return DirectMessageRepositoryImpl(api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUnreadStore(): UnreadStore = UnreadStore()
 
     @Provides
     @Singleton

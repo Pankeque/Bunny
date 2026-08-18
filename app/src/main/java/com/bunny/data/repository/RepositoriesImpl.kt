@@ -25,6 +25,8 @@ import com.bunny.data.remote.dto.SendMessageRequestDto
 import com.bunny.data.remote.dto.UpdateUserRequestDto
 import com.bunny.data.remote.dto.RoleDto
 import com.bunny.data.remote.dto.CreateRoleRequestDto
+import com.bunny.data.remote.dto.SendFriendRequestDto
+import com.bunny.data.remote.dto.SendDirectMessageRequestDto
 import com.bunny.data.remote.mapper.toDomain
 import com.bunny.domain.model.AuthResponse
 import com.bunny.domain.model.Server
@@ -32,12 +34,17 @@ import com.bunny.domain.model.Channel
 import com.bunny.domain.model.Message
 import com.bunny.domain.model.User
 import com.bunny.domain.model.Role
+import com.bunny.domain.model.FriendUser
+import com.bunny.domain.model.DirectConversation
+import com.bunny.domain.model.DirectMessage
 import com.bunny.domain.repository.AuthRepository
 import com.bunny.domain.repository.ServerRepository
 import com.bunny.domain.repository.ChannelRepository
 import com.bunny.domain.repository.MessageRepository
 import com.bunny.domain.repository.UserRepository
 import com.bunny.domain.repository.RoleRepository
+import com.bunny.domain.repository.FriendRepository
+import com.bunny.domain.repository.DirectMessageRepository
 import com.bunny.util.Constants
 import kotlinx.coroutines.flow.map
 import okhttp3.MediaType.Companion.toMediaType
@@ -520,6 +527,229 @@ class RoleRepositoryImpl @Inject constructor(
                 Result.success(Unit)
             } else {
                 Result.failure(Exception("Failed to delete role"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}
+
+@Singleton
+class FriendRepositoryImpl @Inject constructor(
+    private val api: BunnyApi
+) : FriendRepository {
+    private fun <T> Response<T>.errorMessage(fallback: String): String {
+        return try {
+            val body = errorBody()?.string()
+            if (body.isNullOrBlank()) fallback else body
+        } catch (e: Exception) {
+            fallback
+        }
+    }
+
+    override suspend fun getFriends(): Result<List<FriendUser>> {
+        return try {
+            val response = api.getFriends()
+            if (response.isSuccessful) {
+                Result.success(response.body()!!.map { it.toDomain(isIncoming = false) })
+            } else {
+                Result.failure(Exception(response.errorMessage("Failed to fetch friends")))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getPendingIncoming(): Result<List<FriendUser>> {
+        return try {
+            val response = api.getPendingIncoming()
+            if (response.isSuccessful) {
+                Result.success(response.body()!!.map { it.toDomain(isIncoming = true) })
+            } else {
+                Result.failure(Exception(response.errorMessage("Failed to fetch friend requests")))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getPendingOutgoing(): Result<List<FriendUser>> {
+        return try {
+            val response = api.getPendingOutgoing()
+            if (response.isSuccessful) {
+                Result.success(response.body()!!.map { it.toDomain(isIncoming = false) })
+            } else {
+                Result.failure(Exception(response.errorMessage("Failed to fetch sent requests")))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun searchUsers(query: String): Result<List<User>> {
+        return try {
+            val response = api.searchUsers(query)
+            if (response.isSuccessful) {
+                Result.success(response.body()!!.map { it.toDomain() })
+            } else {
+                Result.failure(Exception(response.errorMessage("Failed to search users")))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun sendRequest(username: String): Result<FriendUser> {
+        return try {
+            val response = api.sendFriendRequest(SendFriendRequestDto(username))
+            if (response.isSuccessful) {
+                Result.success(response.body()!!.toDomain(isIncoming = false))
+            } else {
+                Result.failure(Exception(response.errorMessage("Failed to send friend request")))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun acceptRequest(friendshipId: Int): Result<FriendUser> {
+        return try {
+            val response = api.acceptFriendRequest(friendshipId)
+            if (response.isSuccessful) {
+                Result.success(response.body()!!.toDomain(isIncoming = false))
+            } else {
+                Result.failure(Exception(response.errorMessage("Failed to accept friend request")))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun declineRequest(friendshipId: Int): Result<Unit> {
+        return try {
+            val response = api.declineFriendRequest(friendshipId)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(response.errorMessage("Failed to decline friend request")))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun cancelRequest(friendshipId: Int): Result<Unit> {
+        return try {
+            val response = api.cancelFriendRequest(friendshipId)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(response.errorMessage("Failed to cancel friend request")))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun removeFriend(userId: Int): Result<Unit> {
+        return try {
+            val response = api.removeFriend(userId)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(response.errorMessage("Failed to remove friend")))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun blockUser(userId: Int): Result<Unit> {
+        return try {
+            val response = api.blockUser(userId)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(response.errorMessage("Failed to block user")))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun unblockUser(userId: Int): Result<Unit> {
+        return try {
+            val response = api.unblockUser(userId)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(response.errorMessage("Failed to unblock user")))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}
+
+@Singleton
+class DirectMessageRepositoryImpl @Inject constructor(
+    private val api: BunnyApi
+) : DirectMessageRepository {
+    private fun <T> Response<T>.errorMessage(fallback: String): String {
+        return try {
+            val body = errorBody()?.string()
+            if (body.isNullOrBlank()) fallback else body
+        } catch (e: Exception) {
+            fallback
+        }
+    }
+
+    override suspend fun getConversations(): Result<List<DirectConversation>> {
+        return try {
+            val response = api.getConversations()
+            if (response.isSuccessful) {
+                Result.success(response.body()!!.map { it.toDomain() })
+            } else {
+                Result.failure(Exception(response.errorMessage("Failed to fetch conversations")))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getOrCreateConversation(userId: Int): Result<DirectConversation> {
+        return try {
+            val response = api.getOrCreateConversation(userId)
+            if (response.isSuccessful) {
+                Result.success(response.body()!!.toDomain())
+            } else {
+                Result.failure(Exception(response.errorMessage("Failed to open conversation")))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getMessages(conversationId: Int, page: Int, limit: Int): Result<List<DirectMessage>> {
+        return try {
+            val response = api.getDirectMessages(conversationId, page, limit)
+            if (response.isSuccessful) {
+                Result.success(response.body()!!.map { it.toDomain() })
+            } else {
+                Result.failure(Exception(response.errorMessage("Failed to fetch messages")))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun sendMessage(conversationId: Int, content: String): Result<DirectMessage> {
+        return try {
+            val response = api.sendDirectMessage(conversationId, SendDirectMessageRequestDto(content))
+            if (response.isSuccessful) {
+                Result.success(response.body()!!.toDomain())
+            } else {
+                Result.failure(Exception(response.errorMessage("Failed to send message")))
             }
         } catch (e: Exception) {
             Result.failure(e)

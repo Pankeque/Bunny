@@ -67,3 +67,32 @@ data class SendMessageRequest(
     val channelId: Int,
     val content: String
 )
+
+enum class FriendshipStatus { Pending, Accepted, Blocked }
+
+// A person on the friends list. `isIncoming` is true for pending requests
+// directed at the current user; `friendshipId` identifies the request row.
+data class FriendUser(
+    val id: Int,
+    val username: String,
+    val avatarUrl: String?,
+    val status: FriendshipStatus = FriendshipStatus.Pending,
+    val isIncoming: Boolean = false,
+    val friendshipId: Int = 0
+)
+
+data class DirectMessage(
+    val id: Int,
+    val conversationId: Int,
+    val senderId: Int,
+    val user: User? = null,
+    val content: String,
+    val createdAt: String
+)
+
+data class DirectConversation(
+    val id: Int,
+    val user: User,
+    val lastMessage: DirectMessage? = null,
+    val unreadCount: Int = 0
+)

@@ -63,6 +63,31 @@ object Messages : IntIdTable("messages") {
     val createdAt = timestamp("created_at").default(Instant.now())
 }
 
+// Friendship rows use canonical ordering: user_one is always the lower user id,
+// so the unique index prevents duplicate relationships regardless of direction.
+object Friendships : IntIdTable("friendships") {
+    val userOne = reference("user_one", Users.id, onDelete = ReferenceOption.CASCADE)
+    val userTwo = reference("user_two", Users.id, onDelete = ReferenceOption.CASCADE)
+    val initiatorId = integer("initiator_id")
+    val status = varchar("status", 20).default("pending") // pending | accepted | blocked
+    val createdAt = timestamp("created_at").default(Instant.now())
+    init { uniqueIndex(userOne, userTwo) }
+}
+
+object DirectConversations : IntIdTable("direct_conversations") {
+    val userOne = reference("user_one", Users.id, onDelete = ReferenceOption.CASCADE)
+    val userTwo = reference("user_two", Users.id, onDelete = ReferenceOption.CASCADE)
+    val createdAt = timestamp("created_at").default(Instant.now())
+    init { uniqueIndex(userOne, userTwo) }
+}
+
+object DirectMessages : IntIdTable("direct_messages") {
+    val conversationId = reference("conversation_id", DirectConversations.id, onDelete = ReferenceOption.CASCADE)
+    val senderId = reference("sender_id", Users.id, onDelete = ReferenceOption.CASCADE)
+    val content = text("content")
+    val createdAt = timestamp("created_at").default(Instant.now())
+}
+
 class UserEntity(id: EntityID<Int>) : IntEntity(id), Principal {
     companion object : IntEntityClass<UserEntity>(Users)
     var passwordHash by Users.passwordHash
@@ -119,4 +144,28 @@ class MessageEntity(id: EntityID<Int>) : IntEntity(id) {
     var userId by Messages.userId
     var content by Messages.content
     var createdAt by Messages.createdAt
+}
+
+class FriendshipEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<FriendshipEntity>(Friendships)
+    var userOne by Friendships.userOne
+    var userTwo by Friendships.userTwo
+    var initiatorId by Friendships.initiatorId
+    var status by Friendships.status
+    var createdAt by Friendships.createdAt
+}
+
+class DirectConversationEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<DirectConversationEntity>(DirectConversations)
+    var userOne by DirectConversations.userOne
+    var userTwo by DirectConversations.userTwo
+    var createdAt by DirectConversations.createdAt
+}
+
+class DirectMessageEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<DirectMessageEntity>(DirectMessages)
+    var conversationId by DirectMessages.conversationId
+    var senderId by DirectMessages.senderId
+    var content by DirectMessages.content
+    var createdAt by DirectMessages.createdAt
 }

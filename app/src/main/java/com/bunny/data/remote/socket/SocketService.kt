@@ -1,7 +1,9 @@
 package com.bunny.data.remote.socket
 
 import android.util.Log
+import com.bunny.domain.model.DirectMessage
 import com.bunny.domain.model.Message
+import com.bunny.domain.model.User
 import com.bunny.util.Constants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +42,18 @@ sealed class SocketEvent {
     data class PresenceChanged(val channelId: Int, val userId: Int, val online: Boolean) : SocketEvent()
     data class PresenceSnapshot(val channelId: Int, val onlineUserIds: List<Int>) : SocketEvent()
     data class GatewayError(val code: String?, val message: String?) : SocketEvent()
+
+    data class FriendRequestReceived(val friendshipId: Int, val user: User) : SocketEvent()
+    data class FriendRequestAccepted(val friendshipId: Int, val user: User) : SocketEvent()
+    data class FriendRequestDeclined(val friendshipId: Int) : SocketEvent()
+    data class FriendRequestCancelled(val friendshipId: Int) : SocketEvent()
+    data class FriendRemoved(val userId: Int) : SocketEvent()
+    data class FriendBlocked(val userId: Int) : SocketEvent()
+    data class FriendPresenceChanged(val userId: Int, val online: Boolean) : SocketEvent()
+    data class FriendPresenceSnapshot(val onlineUserIds: List<Int>) : SocketEvent()
+
+    data class DirectMessageReceived(val message: DirectMessage, val nonce: String?) : SocketEvent()
+    data class DirectTyping(val conversationId: Int, val userId: Int, val isTyping: Boolean) : SocketEvent()
 }
 
 @Singleton
@@ -203,7 +217,98 @@ class SocketService @Inject constructor() {
                     )
                 )
             }
+            "friend_request_received" -> {
+                val friendshipId = data.optInt("friendshipId")
+                val user = data.optJSONObject("user")?.toUser() ?: return
+                if (friendshipId > 0) {
+                    _incoming.tryEmit(SocketEvent.FriendRequestReceived(friendshipId, user))
+                }
+            }
+            "friend_request_accepted" -> {
+                val friendshipId = data.optInt("friendshipId")
+                val user = data.optJSONObject("user")?.toUser() ?: return
+                if (friendshipId > 0) {
+                    _incoming.tryEmit(SocketEvent.FriendRequestAccepted(friendshipId, user))
+                }
+            }
+            "friend_request_declined" -> {
+                val friendshipId = data.optInt("friendshipId")
+                if (friendshipId > 0) {
+                    _incoming.tryEmit(SocketEvent.FriendRequestDeclined(friendshipId))
+                }
+            }
+            "friend_request_cancelled" -> {
+                val friendshipId = data.optInt("friendshipId")
+                if (friendshipId > 0) {
+                    _incoming.tryEmit(SocketEvent.FriendRequestCancelled(friendshipId))
+                }
+            }
+            "friend_removed" -> {
+                val userId = data.optInt("userId")
+                if (userId > 0) {
+                    _incoming.tryEmit(SocketEvent.FriendRemoved(userId))
+                }
+            }
+            "friend_blocked" -> {
+                val userId = data.optInt("userId")
+                if (userId > 0) {
+                    _incoming.tryEmit(SocketEvent.FriendBlocked(userId))
+                }
+            }
+            "friend_presence_update" -> {
+                val userId = data.optInt("userId")
+                if (userId > 0) {
+                    _incoming.tryEmit(SocketEvent.FriendPresenceChanged(userId, data.optBoolean("online")))
+                }
+            }
+            "friend_presence_snapshot" -> {
+                val users = data.optJSONArray("users")
+                if (users != null) {
+                    val ids = (0 until users.length()).map { users.getInt(it) }
+                    _incoming.tryEmit(SocketEvent.FriendPresenceSnapshot(ids))
+                }
+            }
+            "dm_message_received" -> {
+                val conversationId = data.optInt("conversationId")
+                val messageId = data.optInt("messageId")
+                val senderId = data.optInt("userId")
+                val content = data.optString("content")
+                val timestamp = data.optString("timestamp")
+                val nonce = data.optString("nonce").takeIf { it.isNotBlank() }
+                val user = data.optJSONObject("user")?.toUser()
+                if (conversationId > 0 && messageId > 0) {
+                    _incoming.tryEmit(
+                        SocketEvent.DirectMessageReceived(
+                            message = DirectMessage(
+                                id = messageId,
+                                conversationId = conversationId,
+                                senderId = senderId,
+                                user = user,
+                                content = content,
+                                createdAt = timestamp
+                            ),
+                            nonce = nonce
+                        )
+                    )
+                }
+            }
+            "dm_typing" -> {
+                val conversationId = data.optInt("conversationId")
+                val userId = data.optInt("userId")
+                if (conversationId > 0 && userId > 0) {
+                    _incoming.tryEmit(SocketEvent.DirectTyping(conversationId, userId, data.optBoolean("isTyping")))
+                }
+            }
         }
+    }
+
+    private fun org.json.JSONObject.toUser(): User {
+        return User(
+            id = optInt("id"),
+            username = optString("username"),
+            avatarUrl = optString("avatarUrl").takeIf { it.isNotBlank() },
+            theme = optString("theme").takeIf { it.isNotBlank() } ?: "dark"
+        )
     }
 
     private fun startHeartbeat(intervalMs: Long) {
@@ -272,6 +377,39 @@ class SocketService @Inject constructor() {
         } else {
             pendingMessages.add(payload)
         }
+    }
+
+    fun sendDirectMessage(conversationId: Int, content: String, nonce: String?) {
+        val payload = JSONObject()
+            .put("op", "dm_send_message")
+            .put(
+                "data",
+                JSONObject()
+                    .put("conversationId", conversationId)
+                    .put("content", content)
+                    .put("nonce", nonce ?: JSONObject.NULL)
+            )
+        if (_connectionState.value is ConnectionState.Connected) {
+            sendFrame(payload)
+        } else {
+            pendingMessages.add(payload)
+        }
+    }
+
+    fun sendTyping(conversationId: Int, isTyping: Boolean) {
+        val payload = JSONObject()
+            .put("op", "dm_typing")
+            .put(
+                "data",
+                JSONObject()
+                    .put("conversationId", conversationId)
+                    .put("isTyping", isTyping)
+            )
+        sendFrame(payload)
+    }
+
+    fun requestPresence() {
+        sendFrame(JSONObject().put("op", "request_presence"))
     }
 
     private fun sendControl(op: String, channelId: Int) {

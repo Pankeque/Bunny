@@ -77,4 +77,53 @@ interface BunnyApi {
 
     @DELETE("api/roles/{roleId}")
     suspend fun deleteRole(@Path("roleId") roleId: Int): Response<Unit>
+
+    @GET("api/friends")
+    suspend fun getFriends(): Response<List<FriendshipDto>>
+
+    @GET("api/friends/requests")
+    suspend fun getPendingIncoming(): Response<List<FriendshipDto>>
+
+    @GET("api/friends/requests/sent")
+    suspend fun getPendingOutgoing(): Response<List<FriendshipDto>>
+
+    @POST("api/friends/requests")
+    suspend fun sendFriendRequest(@Body request: SendFriendRequestDto): Response<FriendshipDto>
+
+    @POST("api/friends/requests/{id}/accept")
+    suspend fun acceptFriendRequest(@Path("id") friendshipId: Int): Response<FriendshipDto>
+
+    @POST("api/friends/requests/{id}/decline")
+    suspend fun declineFriendRequest(@Path("id") friendshipId: Int): Response<Unit>
+
+    @POST("api/friends/requests/{id}/cancel")
+    suspend fun cancelFriendRequest(@Path("id") friendshipId: Int): Response<Unit>
+
+    @DELETE("api/friends/{userId}")
+    suspend fun removeFriend(@Path("userId") userId: Int): Response<Unit>
+
+    @POST("api/friends/{userId}/block")
+    suspend fun blockUser(@Path("userId") userId: Int): Response<Unit>
+
+    @POST("api/friends/{userId}/unblock")
+    suspend fun unblockUser(@Path("userId") userId: Int): Response<Unit>
+
+    @GET("api/users/search")
+    suspend fun searchUsers(@Query("q") query: String): Response<List<UserDto>>
+
+    @GET("api/dms/conversations")
+    suspend fun getConversations(): Response<List<DirectConversationDto>>
+
+    @POST("api/dms/conversations/{userId}")
+    suspend fun getOrCreateConversation(@Path("userId") userId: Int): Response<DirectConversationDto>
+
+    @GET("api/dms/conversations/{id}/messages")
+    suspend fun getDirectMessages(
+        @Path("id") conversationId: Int,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 50
+    ): Response<List<DirectMessageDto>>
+
+    @POST("api/dms/conversations/{id}/messages")
+    suspend fun sendDirectMessage(@Path("id") conversationId: Int, @Body request: SendDirectMessageRequestDto): Response<DirectMessageDto>
 }

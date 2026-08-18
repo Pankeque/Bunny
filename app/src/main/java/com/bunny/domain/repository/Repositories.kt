@@ -43,3 +43,24 @@ interface RoleRepository {
     suspend fun createRole(serverId: Int, name: String, color: String): Result<Role>
     suspend fun deleteRole(roleId: Int): Result<Unit>
 }
+
+interface FriendRepository {
+    suspend fun getFriends(): Result<List<FriendUser>>
+    suspend fun getPendingIncoming(): Result<List<FriendUser>>
+    suspend fun getPendingOutgoing(): Result<List<FriendUser>>
+    suspend fun searchUsers(query: String): Result<List<User>>
+    suspend fun sendRequest(username: String): Result<FriendUser>
+    suspend fun acceptRequest(friendshipId: Int): Result<FriendUser>
+    suspend fun declineRequest(friendshipId: Int): Result<Unit>
+    suspend fun cancelRequest(friendshipId: Int): Result<Unit>
+    suspend fun removeFriend(userId: Int): Result<Unit>
+    suspend fun blockUser(userId: Int): Result<Unit>
+    suspend fun unblockUser(userId: Int): Result<Unit>
+}
+
+interface DirectMessageRepository {
+    suspend fun getConversations(): Result<List<DirectConversation>>
+    suspend fun getOrCreateConversation(userId: Int): Result<DirectConversation>
+    suspend fun getMessages(conversationId: Int, page: Int = 1, limit: Int = 50): Result<List<DirectMessage>>
+    suspend fun sendMessage(conversationId: Int, content: String): Result<DirectMessage>
+}

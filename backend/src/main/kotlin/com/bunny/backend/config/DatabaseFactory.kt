@@ -36,7 +36,10 @@ object DatabaseFactory {
                         com.bunny.backend.model.Roles,
                         com.bunny.backend.model.Channels,
                         com.bunny.backend.model.Messages,
-                        com.bunny.backend.model.RefreshTokens
+                        com.bunny.backend.model.RefreshTokens,
+                        com.bunny.backend.model.Friendships,
+                        com.bunny.backend.model.DirectConversations,
+                        com.bunny.backend.model.DirectMessages
                     )
                 }
                 return

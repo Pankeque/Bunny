@@ -53,3 +53,13 @@ data class UpdateUserRequest(
     val avatarUrl: String? = null,
     val theme: String? = null
 )
+
+@Serializable
+data class FriendRequestDto(
+    val username: String
+)
+
+@Serializable
+data class SendDirectMessageRequest(
+    val content: String
+)

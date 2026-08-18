@@ -39,6 +39,12 @@ object UserService {
         theme?.let { user.theme = it }
         user
     }
+
+    fun search(query: String, excludeUserId: Int, limit: Int = 20): List<UserEntity> = transaction {
+        UserEntity.find {
+            (Users.username.lowerCase() like "%${query.lowercase()}%") and (Users.id neq excludeUserId)
+        }.limit(limit).toList()
+    }
 }
 
 object ServerService {
@@ -249,6 +255,208 @@ object MessageService {
         MessageEntity.new {
             this.channelId = EntityID(channelId, Channels)
             this.userId = EntityID(userId, Users)
+            this.content = content
+        }
+    }
+}
+
+object FriendService {
+    private fun canonical(a: Int, b: Int): Pair<Int, Int> = if (a < b) a to b else b to a
+
+    fun relationship(a: Int, b: Int): FriendshipEntity? = transaction {
+        val (u1, u2) = canonical(a, b)
+        FriendshipEntity.find {
+            (Friendships.userOne eq u1) and (Friendships.userTwo eq u2)
+        }.firstOrNull()
+    }
+
+    fun findById(id: Int): FriendshipEntity? = transaction {
+        FriendshipEntity.findById(id)
+    }
+
+    fun otherUserId(friendship: FriendshipEntity, viewerId: Int): Int =
+        if (friendship.userOne.value == viewerId) friendship.userTwo.value else friendship.userOne.value
+
+    fun acceptedFriendIds(userId: Int): List<Int> = transaction {
+        FriendshipEntity.find {
+            (Friendships.status eq "accepted") and
+                ((Friendships.userOne eq userId) or (Friendships.userTwo eq userId))
+        }.map { otherUserId(it, userId) }
+    }
+
+    fun listFriends(userId: Int): List<Pair<FriendshipEntity, UserEntity>> = transaction {
+        FriendshipEntity.find {
+            (Friendships.status eq "accepted") and
+                ((Friendships.userOne eq userId) or (Friendships.userTwo eq userId))
+        }.orderBy(Friendships.createdAt to SortOrder.DESC).mapNotNull { f ->
+            UserEntity.findById(otherUserId(f, userId))?.let { f to it }
+        }
+    }
+
+    fun listPendingIncoming(userId: Int): List<Pair<FriendshipEntity, UserEntity>> = transaction {
+        FriendshipEntity.find {
+            (Friendships.status eq "pending") and
+                (Friendships.initiatorId neq userId) and
+                ((Friendships.userOne eq userId) or (Friendships.userTwo eq userId))
+        }.orderBy(Friendships.createdAt to SortOrder.DESC).mapNotNull { f ->
+            UserEntity.findById(otherUserId(f, userId))?.let { f to it }
+        }
+    }
+
+    fun listPendingOutgoing(userId: Int): List<Pair<FriendshipEntity, UserEntity>> = transaction {
+        FriendshipEntity.find {
+            (Friendships.status eq "pending") and
+                (Friendships.initiatorId eq userId)
+        }.orderBy(Friendships.createdAt to SortOrder.DESC).mapNotNull { f ->
+            UserEntity.findById(otherUserId(f, userId))?.let { f to it }
+        }
+    }
+
+    // Creates a pending request, or auto-accepts a pending request that the
+    // target already sent to the requester.
+    fun sendRequest(requesterId: Int, targetId: Int): FriendshipEntity = transaction {
+        val (u1, u2) = canonical(requesterId, targetId)
+        val existing = FriendshipEntity.find {
+            (Friendships.userOne eq u1) and (Friendships.userTwo eq u2)
+        }.firstOrNull()
+        if (existing != null) {
+            if (existing.status == "pending" && existing.initiatorId != requesterId) {
+                existing.status = "accepted"
+            }
+            return@transaction existing
+        }
+        FriendshipEntity.new {
+            this.userOne = EntityID(u1, Users)
+            this.userTwo = EntityID(u2, Users)
+            this.initiatorId = requesterId
+            this.status = "pending"
+        }
+    }
+
+    fun acceptRequest(friendshipId: Int): FriendshipEntity? = transaction {
+        val f = FriendshipEntity.findById(friendshipId) ?: return@transaction null
+        f.status = "accepted"
+        f
+    }
+
+    fun deleteRequest(friendshipId: Int): Boolean = transaction {
+        val f = FriendshipEntity.findById(friendshipId) ?: return@transaction false
+        f.delete()
+        true
+    }
+
+    fun removeFriend(userId: Int, otherUserId: Int): Boolean = transaction {
+        val f = relationship(userId, otherUserId) ?: return@transaction false
+        if (f.status != "accepted") return@transaction false
+        f.delete()
+        true
+    }
+
+    fun blockUser(blockerId: Int, blockedId: Int) {
+        transaction {
+            val f = relationship(blockerId, blockedId)
+            if (f != null) {
+                if (f.status == "blocked" && f.initiatorId == blockerId) return@transaction
+                f.delete()
+            }
+            val (u1, u2) = canonical(blockerId, blockedId)
+            FriendshipEntity.new {
+                this.userOne = EntityID(u1, Users)
+                this.userTwo = EntityID(u2, Users)
+                this.initiatorId = blockerId
+                this.status = "blocked"
+            }
+            Unit
+        }
+    }
+
+    fun unblockUser(blockerId: Int, blockedId: Int): Boolean = transaction {
+        val f = relationship(blockerId, blockedId) ?: return@transaction false
+        if (f.status == "blocked" && f.initiatorId == blockerId) {
+            f.delete()
+            true
+        } else false
+    }
+}
+
+object DirectMessageService {
+    private fun canonical(a: Int, b: Int): Pair<Int, Int> = if (a < b) a to b else b to a
+
+    fun findConversationBetween(a: Int, b: Int): DirectConversationEntity? = transaction {
+        val (u1, u2) = canonical(a, b)
+        DirectConversationEntity.find {
+            (DirectConversations.userOne eq u1) and (DirectConversations.userTwo eq u2)
+        }.firstOrNull()
+    }
+
+    fun getOrCreateConversation(a: Int, b: Int): DirectConversationEntity? = transaction {
+        val friendship = FriendService.relationship(a, b)
+        if (friendship == null || friendship.status != "accepted") return@transaction null
+        findConversationBetween(a, b) ?: run {
+            val (u1, u2) = canonical(a, b)
+            DirectConversationEntity.new {
+                this.userOne = EntityID(u1, Users)
+                this.userTwo = EntityID(u2, Users)
+            }
+        }
+    }
+
+    fun findConversationById(id: Int): DirectConversationEntity? = transaction {
+        DirectConversationEntity.findById(id)
+    }
+
+    fun isParticipant(conversationId: Int, userId: Int): Boolean = transaction {
+        val conv = findConversationById(conversationId) ?: return@transaction false
+        conv.userOne.value == userId || conv.userTwo.value == userId
+    }
+
+    fun otherParticipantId(conversationId: Int, userId: Int): Int? = transaction {
+        val conv = findConversationById(conversationId) ?: return@transaction null
+        when (userId) {
+            conv.userOne.value -> conv.userTwo.value
+            conv.userTwo.value -> conv.userOne.value
+            else -> null
+        }
+    }
+
+    fun listConversationsFor(userId: Int): List<Pair<DirectConversationEntity, UserEntity>> = transaction {
+        DirectConversationEntity.find {
+            (DirectConversations.userOne eq userId) or (DirectConversations.userTwo eq userId)
+        }.mapNotNull { conv ->
+            val otherId = if (conv.userOne.value == userId) conv.userTwo.value else conv.userOne.value
+            UserEntity.findById(otherId)?.let { conv to it }
+        }.sortedByDescending { lastMessage(it.first.id.value)?.createdAt ?: it.first.createdAt }
+    }
+
+    fun lastMessage(conversationId: Int): DirectMessageEntity? = transaction {
+        DirectMessageEntity.find { DirectMessages.conversationId eq conversationId }
+            .orderBy(DirectMessages.createdAt to SortOrder.DESC)
+            .limit(1)
+            .firstOrNull()
+    }
+
+    fun senderUser(message: DirectMessageEntity): UserEntity? = transaction {
+        UserEntity.findById(message.senderId.value)
+    }
+
+    fun getMessages(conversationId: Int, limit: Int = 50, offset: Int = 0): List<Pair<DirectMessageEntity, UserEntity>> = transaction {
+        (DirectMessages innerJoin Users)
+            .selectAll()
+            .andWhere { DirectMessages.conversationId eq conversationId }
+            .orderBy(DirectMessages.createdAt to SortOrder.DESC)
+            .limit(limit, offset.toLong())
+            .map {
+                val msg = DirectMessageEntity.wrapRow(it)
+                val user = UserEntity.wrapRow(it)
+                msg to user
+            }
+            .reversed()
+    }
+
+    fun create(conversationId: Int, senderId: Int, content: String): DirectMessageEntity = transaction {
+        DirectMessageEntity.new {
+            this.conversationId = EntityID(conversationId, DirectConversations)
+            this.senderId = EntityID(senderId, Users)
             this.content = content
         }
     }

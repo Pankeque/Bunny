@@ -96,3 +96,34 @@ data class CreateRoleRequestDto(
     val name: String,
     val color: String = "#99AAB5"
 )
+
+data class FriendshipDto(
+    @SerializedName("id") val id: Int,
+    val user: UserDto,
+    @SerializedName("status") val status: String,
+    @SerializedName("initiator_id") val initiatorId: Int,
+    @SerializedName("created_at") val createdAt: String
+)
+
+data class DirectConversationDto(
+    @SerializedName("id") val id: Int,
+    val user: UserDto,
+    @SerializedName("last_message") val lastMessage: DirectMessageDto? = null
+)
+
+data class DirectMessageDto(
+    @SerializedName("id") val id: Int,
+    @SerializedName("conversation_id") val conversationId: Int,
+    @SerializedName("sender_id") val senderId: Int,
+    val user: UserDto? = null,
+    @SerializedName("content") val content: String,
+    @SerializedName("created_at") val createdAt: String
+)
+
+data class SendFriendRequestDto(
+    val username: String
+)
+
+data class SendDirectMessageRequestDto(
+    val content: String
+)
