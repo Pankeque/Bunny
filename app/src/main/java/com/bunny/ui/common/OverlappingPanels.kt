@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -94,19 +95,22 @@ class OverlappingPanelsState internal constructor(
 
     /** Routes an incoming horizontal drag delta to the active panel. */
     fun onDrag(deltaPx: Float) {
-        if (dragPanel == null) {
-            dragPanel = when {
+        val existing = dragPanel
+        val panel: Panel = existing ?: run {
+            val chosen = when {
                 startProgress.value < 1f -> Panel.START
                 endProgress.value < 1f -> Panel.END
                 deltaPx > 0f -> Panel.START
                 else -> Panel.END
             }
-            dragFraction = when (dragPanel) {
+            dragPanel = chosen
+            dragFraction = when (chosen) {
                 Panel.START -> startProgress.value
                 Panel.END -> endProgress.value
             }
+            chosen
         }
-        val panelWidthPx = if (dragPanel == Panel.START) startWidthPx else endWidthPx
+        val panelWidthPx = if (panel == Panel.START) startWidthPx else endWidthPx
         if (panelWidthPx <= 0f) return
         dragFraction = (dragFraction - deltaPx / panelWidthPx).coerceIn(0f, 1f)
     }
