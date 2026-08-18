@@ -35,16 +35,12 @@ import com.bunny.ui.auth.ProfileEditScreen
 import com.bunny.ui.auth.ProfileScreen
 import com.bunny.ui.auth.RegisterScreen
 import com.bunny.ui.auth.SplashScreen
-import com.bunny.ui.channels.ChannelListScreen
 import com.bunny.ui.channels.ChannelSettingScreen
-import com.bunny.ui.chat.ChatScreen
 import com.bunny.ui.dms.DirectMessagesScreen
 import com.bunny.ui.dms.DmChatScreen
 import com.bunny.ui.friends.FriendsScreen
 import com.bunny.ui.servers.RoleManagementScreen
-import com.bunny.ui.servers.ServerListScreen
 import com.bunny.ui.servers.ServerSettingScreen
-import com.bunny.util.isMasterDetail
 import dagger.hilt.android.EntryPointAccessors
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector, val matchRoute: (String?) -> Boolean) {
@@ -69,7 +65,6 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector,
 @Composable
 fun BunnyNavHost() {
     val navController = rememberNavController()
-    val wide = isMasterDetail()
 
     var selectedServerId by rememberSaveable { mutableStateOf<Int?>(null) }
     var selectedChannelId by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -87,32 +82,30 @@ fun BunnyNavHost() {
         composable("register") { RegisterScreen(navController, Modifier.fillMaxSize()) }
 
         composable("servers") {
-            if (wide) {
-                ServerWorkspace(
-                    navController = navController,
-                    selectedServerId = selectedServerId,
-                    selectedChannelId = selectedChannelId,
-                    onServerSelected = { selectedServerId = it },
-                    onChannelSelected = { selectedChannelId = it }
-                )
-            } else {
-                ServerListScreen(navController, Modifier.fillMaxSize())
-            }
+            ServerWorkspace(
+                navController = navController,
+                selectedServerId = selectedServerId,
+                selectedChannelId = selectedChannelId,
+                onServerSelected = {
+                    selectedServerId = it
+                    selectedChannelId = null
+                },
+                onChannelSelected = { selectedChannelId = it }
+            )
         }
 
         composable("channels/{serverId}") { backStackEntry ->
             val serverId = backStackEntry.arguments?.getString("serverId")?.toIntOrNull() ?: 0
-            if (wide) {
-                ServerWorkspace(
-                    navController = navController,
-                    selectedServerId = serverId,
-                    selectedChannelId = selectedChannelId,
-                    onServerSelected = { selectedServerId = it },
-                    onChannelSelected = { selectedChannelId = it }
-                )
-            } else {
-                ChannelListScreen(navController, serverId, Modifier.fillMaxSize())
-            }
+            ServerWorkspace(
+                navController = navController,
+                selectedServerId = serverId,
+                selectedChannelId = selectedChannelId,
+                onServerSelected = {
+                    selectedServerId = it
+                    selectedChannelId = null
+                },
+                onChannelSelected = { selectedChannelId = it }
+            )
         }
 
         composable(
@@ -127,17 +120,16 @@ fun BunnyNavHost() {
         ) { backStackEntry ->
             val channelId = backStackEntry.arguments?.getInt("channelId") ?: 0
             val serverId = backStackEntry.arguments?.getInt("serverId") ?: -1
-            if (wide) {
-                ServerWorkspace(
-                    navController = navController,
-                    selectedServerId = selectedServerId,
-                    selectedChannelId = channelId,
-                    onServerSelected = { selectedServerId = it },
-                    onChannelSelected = { selectedChannelId = it }
-                )
-            } else {
-                ChatScreen(navController, channelId, serverId, Modifier.fillMaxSize())
-            }
+            ServerWorkspace(
+                navController = navController,
+                selectedServerId = if (serverId > 0) serverId else selectedServerId,
+                selectedChannelId = channelId,
+                onServerSelected = {
+                    selectedServerId = it
+                    selectedChannelId = null
+                },
+                onChannelSelected = { selectedChannelId = it }
+            )
         }
 
         composable("dms") {
