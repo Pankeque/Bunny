@@ -106,6 +106,12 @@ fun ServersHome(
                     servers = servers,
                     selectedServerId = selectedServerId,
                     onServerClick = { selectedServerId = it.id },
+                    onDmClick = {
+                        navController.navigate("dms") {
+                            popUpTo(navController.graph.startDestinationId)
+                            launchSingleTop = true
+                        }
+                    },
                     onCreateClick = { showCreateDialog = true },
                     onJoinClick = { showJoinDialog = true },
                     modifier = Modifier.width(64.dp)

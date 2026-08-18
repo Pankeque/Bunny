@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Settings
@@ -41,6 +42,7 @@ fun ServerRail(
     onCreateClick: () -> Unit,
     onJoinClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onDmClick: () -> Unit = {},
     bottomExtra: @Composable ColumnScope.() -> Unit = {}
 ) {
     Column(
@@ -53,6 +55,15 @@ fun ServerRail(
             contentPadding = PaddingValues(top = 8.dp, bottom = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            item(key = "direct-messages") {
+                RailCircleButton(
+                    icon = Icons.Outlined.ChatBubbleOutline,
+                    description = "Direct Messages",
+                    onClick = onDmClick,
+                    highlighted = true
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+            }
             items(servers, key = { it.id }) { server ->
                 ServerRailIcon(
                     server = server,
@@ -141,21 +152,25 @@ private fun ServerRailIcon(
 private fun RailCircleButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     description: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    highlighted: Boolean = false
 ) {
     Box(
         modifier = Modifier
             .size(46.dp)
             .pressScale()
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
+            .background(
+                if (highlighted) BunnyAccent
+                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+            )
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icon,
             contentDescription = description,
-            tint = MaterialTheme.colorScheme.primary,
+            tint = if (highlighted) Color.White else MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(22.dp)
         )
     }

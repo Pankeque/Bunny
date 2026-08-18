@@ -34,6 +34,7 @@ import com.bunny.ui.servers.InviteCodeDialog
 import com.bunny.ui.servers.JoinServerDialog
 import com.bunny.ui.servers.ServerRail
 import com.bunny.ui.servers.ServerViewModel
+import com.bunny.util.isLandscape
 import com.bunny.util.isMasterDetail
 import kotlinx.coroutines.launch
 
@@ -73,8 +74,13 @@ fun ServerWorkspace(
     val panelsState = rememberOverlappingPanelsState(
         startPanelWidth = 333.dp,
         endPanelWidth = 272.dp,
-        initialValue = if (wide) 0f else 1f
+        startInitiallyOpen = wide
     )
+
+    LaunchedEffect(wide) {
+        panelsState.startPinned = wide
+        panelsState.snapTo(startOpen = wide, endOpen = false)
+    }
 
     LaunchedEffect(Unit) {
         serversViewModel.loadServers { result ->
@@ -111,11 +117,12 @@ fun ServerWorkspace(
     Surface(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
-            bottomBar = { if (!wide) BunnyBottomNav(navController) },
+            bottomBar = { if (!isLandscape()) BunnyBottomNav(navController) },
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { padding ->
             OverlappingPanelsHost(
                 state = panelsState,
+                wide = wide,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
@@ -128,6 +135,12 @@ fun ServerWorkspace(
                                 onServerSelected(server.id)
                                 channelServerId = server.id
                                 channelsViewModel.loadChannels(server.id) { r -> r.onSuccess { channels = it } }
+                            },
+                            onDmClick = {
+                                navController.navigate("dms") {
+                                    popUpTo(navController.graph.startDestinationId)
+                                    launchSingleTop = true
+                                }
                             },
                             onCreateClick = { showCreateDialog = true },
                             onJoinClick = { showJoinDialog = true },
