@@ -16,7 +16,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -25,16 +24,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.bunny.data.remote.socket.ConnectionState
-import com.bunny.domain.model.Message
 import com.bunny.ui.channels.ChannelViewModel
 import com.bunny.ui.common.ConnectionDot
 import com.bunny.ui.common.ConfirmDialog
 import com.bunny.ui.common.MembersPanelContent
-import com.bunny.ui.common.MessageStatus
-import com.bunny.ui.common.MessageStatusIcon
 import com.bunny.ui.common.PresenceDot
 import com.bunny.ui.common.SystemMessage
-import com.bunny.ui.common.TypingIndicator
 import com.bunny.ui.common.UserAvatar
 import com.bunny.ui.servers.ServerViewModel
 import com.bunny.ui.theme.BunnyAccent
@@ -58,11 +53,17 @@ fun ChatScreen(
     val messageStatuses by viewModel.messageStatuses.collectAsStateWithLifecycle()
     val onlineUserIds by viewModel.onlineUserIds.collectAsStateWithLifecycle()
     val connectionState by viewModel.connectionState.collectAsStateWithLifecycle()
+    val isInitialLoading by viewModel.isInitialLoading.collectAsStateWithLifecycle()
+    val initialError by viewModel.initialError.collectAsStateWithLifecycle()
+    val isLoadingOlder by viewModel.isLoadingOlder.collectAsStateWithLifecycle()
+    val hasMore by viewModel.hasMore.collectAsStateWithLifecycle()
+    val bottomPoke by viewModel.bottomPoke.collectAsStateWithLifecycle()
 
     var inputText by remember { mutableStateOf("") }
     var channelName by remember { mutableStateOf("") }
     var channelDescription by remember { mutableStateOf("Text channel") }
     var currentUser by remember { mutableStateOf<Int?>(null) }
+    var serverIcon by remember { mutableStateOf<String?>(null) }
     var showMembers by remember { mutableStateOf(false) }
     var intentToLeaveServer by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
@@ -88,13 +89,24 @@ fun ChatScreen(
                     }
                 }
             }
+            serversViewModel.loadServers { result ->
+                result.onSuccess { servers ->
+                    servers.find { it.id == serverId }?.let { serverIcon = it.iconUrl }
+                }
+            }
         }
     }
 
-    LaunchedEffect(messages.size) {
-        if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.size - 1)
+    // Scroll to the newest message once the initial page has loaded.
+    LaunchedEffect(isInitialLoading) {
+        if (!isInitialLoading && messages.isNotEmpty()) {
+            listState.scrollToItem(0)
         }
+    }
+
+    // Scroll to the bottom whenever a new message arrives at the end.
+    LaunchedEffect(bottomPoke) {
+        if (bottomPoke > 0) listState.animateScrollToItem(0)
     }
 
     val onlineCount = onlineUserIds.count { it != currentUser }
@@ -114,12 +126,12 @@ fun ChatScreen(
 
     Surface(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Channel header
+            // Channel header: server/channel avatar + name + presence + actions
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.background.copy(alpha = 0.9f))
-                    .padding(horizontal = 6.dp, vertical = 8.dp),
+                    .padding(horizontal = 6.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (!embedded) {
@@ -127,6 +139,12 @@ fun ChatScreen(
                         Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
                     }
                 }
+                UserAvatar(
+                    imageUrl = serverIcon,
+                    username = channelName.ifBlank { "#" }.take(1),
+                    size = 36.dp
+                )
+                Spacer(modifier = Modifier.width(10.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = if (channelName.isBlank()) "Channel #$channelId" else "#$channelName",
@@ -176,7 +194,7 @@ fun ChatScreen(
                         .padding(horizontal = 16.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TypingIndicator()
+                    com.bunny.ui.common.TypingIndicator()
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Typing…",
@@ -186,42 +204,72 @@ fun ChatScreen(
                 }
             }
 
-            if (messages.isEmpty()) {
-                EmptyChatState(
-                    channelName = if (channelName.isBlank()) "$channelId" else channelName,
-                    modifier = Modifier.weight(1f)
-                )
-            } else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    reverseLayout = true,
-                    contentPadding = PaddingValues(vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(1.dp)
-                ) {
-                    itemsIndexed(messages.reversed(), key = { _, message -> message.id }) { reversedIndex, message ->
-                        val chronologicalIndex = messages.size - 1 - reversedIndex
-                        if (message.userId <= 0) {
-                            SystemMessage(text = message.content)
-                        } else {
-                            MessageItem(
-                                message = message,
-                                isCurrentUser = message.userId == (currentUser ?: 0),
-                                showHeader = chronologicalIndex == 0 ||
-                                    messages[chronologicalIndex - 1].userId != message.userId,
-                                status = messageStatuses[message.id],
-                                onRetry = {
-                                    viewModel.retryMessage(channelId, message)
-                                }
-                            )
+            when {
+                isInitialLoading -> {
+                    MessageListSkeleton(modifier = Modifier.weight(1f))
+                }
+                initialError != null && messages.isEmpty() -> {
+                    ChatErrorState(
+                        message = initialError ?: "Failed to load messages",
+                        onRetry = { viewModel.loadMessages(channelId) {} },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                messages.isEmpty() -> {
+                    EmptyChatState(
+                        channelName = if (channelName.isBlank()) "$channelId" else channelName,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                else -> {
+                    // Chronological list rendered newest-first against the bottom.
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        reverseLayout = true,
+                        contentPadding = PaddingValues(vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(1.dp)
+                    ) {
+                        itemsIndexed(messages.asReversed(), key = { _, message -> message.id }) { reversedIndex, message ->
+                            val chronologicalIndex = messages.size - 1 - reversedIndex
+                            if (message.userId <= 0) {
+                                SystemMessage(text = message.content)
+                            } else {
+                                MessageItem(
+                                    message = message,
+                                    isCurrentUser = message.userId == (currentUser ?: 0),
+                                    showHeader = chronologicalIndex == 0 ||
+                                        messages[chronologicalIndex - 1].userId != message.userId,
+                                    status = messageStatuses[message.id],
+                                    onRetry = {
+                                        viewModel.retryMessage(channelId, message)
+                                    }
+                                )
+                            }
                         }
-                    }
-                    item(key = "start") {
-                        SystemMessage(
-                            text = "Start of conversation in #${if (channelName.isBlank()) channelId else channelName}"
-                        )
+                        item(key = "start") {
+                            // Composed only when scrolled near the top, which
+                            // triggers loading the next (older) page.
+                            LaunchedEffect(Unit) {
+                                if (hasMore) viewModel.loadOlderMessages()
+                            }
+                            if (isLoadingOlder) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .padding(vertical = 12.dp)
+                                        .size(22.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            } else if (!hasMore) {
+                                SystemMessage(
+                                    text = "Start of conversation in #${if (channelName.isBlank()) channelId else channelName}"
+                                )
+                            } else {
+                                Spacer(modifier = Modifier.height(12.dp))
+                            }
+                        }
                     }
                 }
             }
@@ -305,6 +353,83 @@ fun ChatScreen(
 }
 
 @Composable
+private fun MessageListSkeleton(modifier: Modifier = Modifier) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        repeat(6) { index ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(if (index % 2 == 0) 0.35f else 0.28f)
+                            .height(14.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(if (index % 2 == 0) 0.8f else 0.6f)
+                            .height(16.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChatErrorState(
+    message: String,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Forum,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
+        )
+        Spacer(modifier = Modifier.height(14.dp))
+        Text(
+            text = "Couldn't load messages",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 36.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onRetry, shape = RoundedCornerShape(14.dp)) {
+            Text("Retry", fontWeight = FontWeight.SemiBold)
+        }
+    }
+}
+
+@Composable
 private fun EmptyChatState(channelName: String, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -331,110 +456,5 @@ private fun EmptyChatState(channelName: String, modifier: Modifier = Modifier) {
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 36.dp)
         )
-    }
-}
-
-@Composable
-fun MessageItem(
-    message: Message,
-    isCurrentUser: Boolean,
-    showHeader: Boolean,
-    status: MessageStatus? = null,
-    onRetry: () -> Unit = {}
-) {
-    if (isCurrentUser) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 5.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.Top
-        ) {
-            Column(
-                modifier = Modifier.widthIn(max = 320.dp),
-                horizontalAlignment = Alignment.End
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    status?.let {
-                        MessageStatusIcon(status = it, onRetry = onRetry, modifier = Modifier.padding(end = 6.dp))
-                    }
-                    Text(
-                        text = shortTime(message.createdAt),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "you",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = BunnyAccent
-                    )
-                }
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = message.content,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
-                        .padding(horizontal = 14.dp, vertical = 9.dp)
-                )
-            }
-        }
-    } else {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 5.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            UserAvatar(
-                imageUrl = message.user?.avatarUrl,
-                username = message.user?.username ?: "?",
-                size = 34.dp,
-                modifier = Modifier.padding(top = 2.dp)
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = message.user?.username ?: "Desconhecido",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = shortTime(message.createdAt),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    status?.let {
-                        Spacer(modifier = Modifier.width(6.dp))
-                        MessageStatusIcon(status = it, onRetry = onRetry)
-                    }
-                }
-                Text(
-                    text = message.content,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(top = 2.dp)
-                )
-            }
-        }
-    }
-}
-
-
-// Formats a short timestamp (HH:mm) or returns the raw tail segment
-private fun shortTime(raw: String): String {
-    if (raw.isBlank()) return ""
-    return try {
-        val parsed = java.time.OffsetDateTime.parse(raw)
-        parsed.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
-    } catch (e: Exception) {
-        if (raw.length > 5) raw.takeLast(5) else raw
     }
 }

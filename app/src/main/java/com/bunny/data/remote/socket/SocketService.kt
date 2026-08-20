@@ -178,6 +178,9 @@ class SocketService @Inject constructor() {
                 val content = data.optString("content")
                 val timestamp = data.optString("timestamp")
                 val nonce = data.optString("nonce").takeIf { it.isNotBlank() }
+                val roleName = data.optString("roleName").takeIf { it.isNotBlank() }
+                val roleColor = data.optString("roleColor").takeIf { it.isNotBlank() }
+                val user = data.optJSONObject("user")?.toUser()
                 if (messageId > 0 && channelId > 0) {
                     _incoming.tryEmit(
                         SocketEvent.MessageReceived(
@@ -185,8 +188,11 @@ class SocketService @Inject constructor() {
                                 id = messageId,
                                 channelId = channelId,
                                 userId = userId,
+                                user = user,
                                 content = content,
-                                createdAt = timestamp
+                                createdAt = timestamp,
+                                roleName = roleName,
+                                roleColor = roleColor
                             ),
                             nonce = nonce
                         )

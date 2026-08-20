@@ -27,13 +27,18 @@ fun ChannelEntity.toResponse() = ChannelResponse(
     createdAt = createdAt.toString()
 )
 
-fun Pair<MessageEntity, UserEntity>.toResponse() = MessageResponse(
+fun Pair<MessageEntity, UserEntity>.toResponse(
+    roleName: String? = null,
+    roleColor: String? = null
+) = MessageResponse(
     id = first.id.value,
     channelId = first.channelId.value,
     userId = first.userId.value,
     user = second.toResponse(),
     content = first.content,
-    createdAt = first.createdAt.toString()
+    createdAt = first.createdAt.toString(),
+    roleName = roleName,
+    roleColor = roleColor
 )
 
 fun RoleEntity.toResponse() = RoleResponse(

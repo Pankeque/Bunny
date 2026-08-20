@@ -41,6 +41,8 @@ data class WsData(
     val conversationId: Int? = null,
     val isTyping: Boolean? = null,
     val user: UserResponse? = null,
+    val roleName: String? = null,
+    val roleColor: String? = null,
     val friendshipId: Int? = null
 )
 
@@ -285,6 +287,11 @@ fun Application.configureWebSockets() {
                                     content = content
                                 )
                             }
+                            val sender = UserService.findById(userId)
+                            val channel = ChannelService.findById(channelId)
+                            val (roleName, roleColor) = channel?.let {
+                                MessageService.roleNameAndColor(userId, it.serverId.value)
+                            } ?: (null to null)
                             val event = WsMessage(
                                 op = "event",
                                 type = "message_received",
@@ -295,7 +302,10 @@ fun Application.configureWebSockets() {
                                     content = savedMessage.content,
                                     nonce = data.nonce,
                                     sequence = savedMessage.id.value.toLong(),
-                                    timestamp = savedMessage.createdAt.toString()
+                                    timestamp = savedMessage.createdAt.toString(),
+                                    user = sender?.toResponse(),
+                                    roleName = roleName,
+                                    roleColor = roleColor
                                 )
                             )
                             manager.sendToChannel(channelId, event)

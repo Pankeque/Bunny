@@ -31,6 +31,22 @@ class ChatViewModel @Inject constructor(
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
     val messages: StateFlow<List<Message>> = _messages.asStateFlow()
 
+    private val _isInitialLoading = MutableStateFlow(true)
+    val isInitialLoading: StateFlow<Boolean> = _isInitialLoading.asStateFlow()
+
+    private val _initialError = MutableStateFlow<String?>(null)
+    val initialError: StateFlow<String?> = _initialError.asStateFlow()
+
+    private val _isLoadingOlder = MutableStateFlow(false)
+    val isLoadingOlder: StateFlow<Boolean> = _isLoadingOlder.asStateFlow()
+
+    private val _hasMore = MutableStateFlow(true)
+    val hasMore: StateFlow<Boolean> = _hasMore.asStateFlow()
+
+    /** Incremented whenever a new message is appended at the bottom of the list. */
+    private val _bottomPoke = MutableStateFlow(0)
+    val bottomPoke: StateFlow<Int> = _bottomPoke.asStateFlow()
+
     private val _messageStatuses = MutableStateFlow<Map<Int, MessageStatus>>(emptyMap())
     val messageStatuses: StateFlow<Map<Int, MessageStatus>> = _messageStatuses.asStateFlow()
 
@@ -49,20 +65,50 @@ class ChatViewModel @Inject constructor(
     private var stateJob: Job? = null
 
     private val sendTimeoutMs = 12_000L
+    private val pageSize = 50
+    private var currentPage = 0
 
     fun loadMessages(channelId: Int, onResult: (Result<List<Message>>) -> Unit = {}) {
         currentChannelId = channelId
         viewModelScope.launch {
-            val result = messageRepository.getMessages(channelId)
+            _isInitialLoading.value = true
+            _initialError.value = null
+            val result = messageRepository.getMessages(channelId, 1, pageSize)
             if (result.isSuccess) {
                 val loaded = result.getOrDefault(emptyList())
+                currentPage = 1
                 knownMessageIds.clear()
                 _messages.value = loaded.filter { knownMessageIds.add(it.id) }
+                _hasMore.value = loaded.size >= pageSize
                 val statuses = _messageStatuses.value.toMutableMap()
                 loaded.forEach { statuses.remove(it.id) }
                 _messageStatuses.value = statuses
+            } else {
+                _initialError.value = result.exceptionOrNull()?.message ?: "Failed to load messages"
             }
+            _isInitialLoading.value = false
             onResult(result)
+        }
+    }
+
+    /** Loads the next (older) page and prepends it to the list. */
+    fun loadOlderMessages() {
+        val channelId = currentChannelId ?: return
+        if (_isLoadingOlder.value || !_hasMore.value || _isInitialLoading.value) return
+        viewModelScope.launch {
+            _isLoadingOlder.value = true
+            val result = messageRepository.getMessages(channelId, currentPage + 1, pageSize)
+            result.onSuccess { older ->
+                val known = _messages.value.mapTo(mutableSetOf()) { it.id }
+                val toPrepend = older.filterNot { known.contains(it.id) }
+                if (toPrepend.isNotEmpty()) {
+                    knownMessageIds.addAll(toPrepend.map { it.id })
+                    _messages.value = toPrepend + _messages.value
+                    currentPage += 1
+                }
+                if (older.size < pageSize) _hasMore.value = false
+            }
+            _isLoadingOlder.value = false
         }
     }
 
@@ -82,6 +128,7 @@ class ChatViewModel @Inject constructor(
         nonceToTempId[nonce] = tempId
         _messages.value = _messages.value + optimistic
         _messageStatuses.value = _messageStatuses.value + (tempId to MessageStatus.Sending)
+        _bottomPoke.value += 1
         socketService.sendMessage(channelId, trimmed, nonce)
         scheduleSendTimeout(tempId)
     }
@@ -186,10 +233,12 @@ class ChatViewModel @Inject constructor(
                 statuses[message.id] = MessageStatus.Delivered
             }
             _messageStatuses.value = statuses
+            _bottomPoke.value += 1
             return
         }
         if (knownMessageIds.add(message.id)) {
             _messages.value = _messages.value + message
+            _bottomPoke.value += 1
         }
     }
 

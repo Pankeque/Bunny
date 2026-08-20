@@ -382,7 +382,11 @@ fun Route.messageRoutes() {
                     }
                     val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
                     val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 50
-                    val messages = MessageService.findByChannel(channelId, limit, (page - 1) * limit).map { it.toResponse() }
+                    val serverId = channel.serverId.value
+                    val messages = MessageService.findByChannel(channelId, limit, (page - 1) * limit).map { (msg, sender) ->
+                        val (roleName, roleColor) = MessageService.roleNameAndColor(sender.id.value, serverId)
+                        (msg to sender).toResponse(roleName = roleName, roleColor = roleColor)
+                    }
                     call.respond(messages)
                 }
 
@@ -402,7 +406,8 @@ fun Route.messageRoutes() {
                         return@post call.respond(HttpStatusCode.Forbidden)
                     }
                     val message = MessageService.create(channelId, user.id.value, request.content)
-                    call.respond(HttpStatusCode.Created, (message to user).toResponse())
+                    val (roleName, roleColor) = MessageService.roleNameAndColor(user.id.value, channel.serverId.value)
+                    call.respond(HttpStatusCode.Created, (message to user).toResponse(roleName = roleName, roleColor = roleColor))
                 }
             }
         }

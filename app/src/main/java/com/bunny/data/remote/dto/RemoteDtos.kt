@@ -32,7 +32,9 @@ data class MessageDto(
     @SerializedName("user_id") val userId: Int,
     val user: UserDto? = null,
     @SerializedName("content") val content: String,
-    @SerializedName("created_at") val createdAt: String
+    @SerializedName("created_at") val createdAt: String,
+    @SerializedName("role_name") val roleName: String? = null,
+    @SerializedName("role_color") val roleColor: String? = null
 )
 
 data class AuthRequestDto(

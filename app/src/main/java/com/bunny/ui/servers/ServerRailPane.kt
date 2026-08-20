@@ -62,7 +62,14 @@ fun ServerRail(
                     onClick = onDmClick,
                     highlighted = true
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .width(36.dp)
+                        .height(1.dp)
+                        .background(MaterialTheme.colorScheme.outlineVariant)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
             }
             items(servers, key = { it.id }) { server ->
                 ServerRailIcon(
@@ -149,7 +156,7 @@ private fun ServerRailIcon(
 }
 
 @Composable
-private fun RailCircleButton(
+internal fun RailCircleButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     description: String,
     onClick: () -> Unit,

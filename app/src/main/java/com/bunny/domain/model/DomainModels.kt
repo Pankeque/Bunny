@@ -30,7 +30,9 @@ data class Message(
     val userId: Int,
     val user: User? = null,
     val content: String,
-    val createdAt: String
+    val createdAt: String,
+    val roleName: String? = null,
+    val roleColor: String? = null
 )
 
 data class AuthRequest(

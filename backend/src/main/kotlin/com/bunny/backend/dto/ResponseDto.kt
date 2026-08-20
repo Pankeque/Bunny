@@ -36,7 +36,9 @@ data class MessageResponse(
     val userId: Int,
     val user: UserResponse? = null,
     val content: String,
-    val createdAt: String
+    val createdAt: String,
+    val roleName: String? = null,
+    val roleColor: String? = null
 )
 
 @Serializable

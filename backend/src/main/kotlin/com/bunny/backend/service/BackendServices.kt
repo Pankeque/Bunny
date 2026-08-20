@@ -258,6 +258,15 @@ object MessageService {
             this.content = content
         }
     }
+
+    /** Returns the sender's role (name, color) inside the given server, if any. */
+    fun roleNameAndColor(userId: Int, serverId: Int): Pair<String?, String?> = transaction {
+        val member = ServerMemberEntity.find {
+            (ServerMembers.userId eq userId) and (ServerMembers.serverId eq serverId)
+        }.firstOrNull()
+        val role = member?.roleId?.let { RoleEntity.findById(it) }
+        role?.name to role?.color
+    }
 }
 
 object FriendService {

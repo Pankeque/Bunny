@@ -1,10 +1,7 @@
 package com.bunny.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
@@ -13,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -32,6 +28,7 @@ import com.bunny.ui.servers.ChannelPane
 import com.bunny.ui.servers.CreateServerDialog
 import com.bunny.ui.servers.InviteCodeDialog
 import com.bunny.ui.servers.JoinServerDialog
+import com.bunny.ui.servers.RailCircleButton
 import com.bunny.ui.servers.ServerRail
 import com.bunny.ui.servers.ServerViewModel
 import com.bunny.util.isLandscape
@@ -147,25 +144,15 @@ fun ServerWorkspace(
                             modifier = Modifier.width(72.dp),
                             bottomExtra = {
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .size(46.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
-                                        .clickable {
-                                            navController.navigate("profile") {
-                                                launchSingleTop = true
-                                            }
-                                        },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Person,
-                                        contentDescription = "Profile",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(22.dp)
-                                    )
-                                }
+                                RailCircleButton(
+                                    icon = Icons.Outlined.Person,
+                                    description = "Profile",
+                                    onClick = {
+                                        navController.navigate("profile") {
+                                            launchSingleTop = true
+                                        }
+                                    }
+                                )
                             }
                         )
                         Box(
