@@ -64,11 +64,16 @@ fun brandGradientColors(theme: AppTheme): List<Color> = when (theme) {
 fun brandGradientBrush(theme: AppTheme): Brush =
     Brush.linearGradient(brandGradientColors(theme))
 
-// Subtle press-scale haptic-style feedback (visual touch feedback)
+// Subtle press-scale haptic-style feedback (visual touch feedback).
+// Pass the same [interactionSource] used by the sibling `clickable` so the
+// pressed state is shared; otherwise the scale never animates.
 @Composable
-fun Modifier.pressScale(pressedScale: Float = 0.97f): Modifier {
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
+fun Modifier.pressScale(
+    interactionSource: MutableInteractionSource? = null,
+    pressedScale: Float = 0.97f
+): Modifier {
+    val source = interactionSource ?: remember { MutableInteractionSource() }
+    val pressed by source.collectIsPressedAsState()
     val scale by animateFloatAsState(
         targetValue = if (pressed) pressedScale else 1f,
         animationSpec = tween(durationMillis = 120),

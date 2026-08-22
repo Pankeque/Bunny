@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bunny.domain.model.Message
@@ -117,7 +116,7 @@ fun MessageItem(
                         text = message.user?.username ?: "Unknown",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = roleColorOf(message.roleColor)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
@@ -138,16 +137,6 @@ fun MessageItem(
                 modifier = Modifier.padding(top = if (showHeader) 2.dp else 0.dp)
             )
         }
-    }
-}
-
-// Parses a "#RRGGBB" role color, falling back to the theme's on-surface color.
-private fun roleColorOf(hex: String?): Color {
-    if (hex.isNullOrBlank()) return MaterialTheme.colorScheme.onSurface
-    return try {
-        Color(android.graphics.Color.parseColor(hex))
-    } catch (e: IllegalArgumentException) {
-        MaterialTheme.colorScheme.onSurface
     }
 }
 

@@ -2,6 +2,7 @@ package com.bunny.ui.servers
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -106,6 +107,7 @@ private fun ServerRailIcon(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -127,13 +129,17 @@ private fun ServerRailIcon(
         Box(
             modifier = Modifier
                 .size(46.dp)
-                .pressScale()
+                .pressScale(interactionSource = interactionSource)
                 .clip(if (selected) RoundedCornerShape(14.dp) else CircleShape)
                 .background(
                     if (selected) BunnyAccent
                     else MaterialTheme.colorScheme.surfaceVariant
                 )
-                .clickable(onClick = onClick),
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = onClick
+                ),
             contentAlignment = Alignment.Center
         ) {
             if (!server.iconUrl.isNullOrBlank()) {
@@ -162,16 +168,21 @@ internal fun RailCircleButton(
     onClick: () -> Unit,
     highlighted: Boolean = false
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
             .size(46.dp)
-            .pressScale()
+            .pressScale(interactionSource = interactionSource)
             .clip(CircleShape)
             .background(
                 if (highlighted) BunnyAccent
                 else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
             )
-            .clickable(onClick = onClick),
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
         contentAlignment = Alignment.Center
     ) {
         Icon(
