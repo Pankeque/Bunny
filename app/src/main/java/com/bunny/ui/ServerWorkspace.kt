@@ -75,8 +75,13 @@ fun ServerWorkspace(
         startInitiallyOpen = wide
     )
 
-    LaunchedEffect(wide) {
+    // Synchronously pin/unpin the start panel whenever `wide` changes so the
+    // OverlappingPanelsHost sees the correct value on its very first frame.
+    androidx.compose.runtime.SideEffect {
         panelsState.startPinned = wide
+    }
+
+    LaunchedEffect(wide) {
         panelsState.snapTo(startOpen = wide, endOpen = false)
     }
 
