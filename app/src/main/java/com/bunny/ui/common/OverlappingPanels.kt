@@ -112,7 +112,10 @@ class OverlappingPanelsState internal constructor(
         }
         val panelWidthPx = if (panel == Panel.START) startWidthPx else endWidthPx
         if (panelWidthPx <= 0f) return
-        dragFraction = (dragFraction - deltaPx / panelWidthPx).coerceIn(0f, 1f)
+        // Start panel (left): swipe right (positive delta) opens it.
+        // End panel (right): swipe left (negative delta) opens it, so we invert.
+        val effectiveDelta = if (panel == Panel.START) deltaPx else -deltaPx
+        dragFraction = (dragFraction - effectiveDelta / panelWidthPx).coerceIn(0f, 1f)
     }
 
     /** Animates the dragged panel to the nearest anchor when the gesture ends. */
@@ -129,6 +132,8 @@ class OverlappingPanelsState internal constructor(
                 endProgress.snapTo(fraction)
                 endProgress.animateTo(target)
             }
+            // Reset drag fraction so the next gesture starts from the settled position.
+            dragFraction = target
         }
     }
 
@@ -153,7 +158,7 @@ class OverlappingPanelsState internal constructor(
         endProgress.snapTo(if (endOpen) 0f else 1f)
     }
 
-    /** Back button: close the end panel first, then the start panel. */
+    /** Back button: close the end panel first, then the start panel (when not pinned). */
     suspend fun handleBack() {
         when {
             endProgress.value < 1f -> endProgress.animateTo(1f)
@@ -219,13 +224,13 @@ fun OverlappingPanelsHost(
     val scope = rememberCoroutineScope()
     val startVisible by state.startVisiblePx
     val endVisible by state.endVisiblePx
-    val scrimVisible = if (wide) state.isEndPanelOpen else state.isAnyPanelOpen
+    val scrimVisible = if (state.startPinned) state.isEndPanelOpen else state.isAnyPanelOpen
 
-    BackHandler(enabled = if (wide) state.isEndPanelOpen else state.isAnyPanelOpen) {
+    BackHandler(enabled = if (state.startPinned) state.isEndPanelOpen else state.isAnyPanelOpen) {
         scope.launch { state.handleBack() }
     }
 
-    val rootModifier = if (wide) {
+    val rootModifier = if (state.startPinned) {
         modifier.fillMaxSize()
     } else {
         modifier
@@ -242,12 +247,13 @@ fun OverlappingPanelsHost(
     }
 
     Box(rootModifier) {
-        // Center layer: full-screen base content (chat). In wide mode it is
-        // padded so the pinned start panel never covers it.
+        // Center layer: full-screen base content (chat). When the start panel
+        // is pinned (wide mode) it is padded so the pinned start panel never
+        // covers it; otherwise the center occupies the full width.
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = if (wide) state.startPanelWidth else 0.dp)
+                .padding(start = if (state.startPinned) state.startPanelWidth else 0.dp)
         ) {
             centerPanel()
         }
