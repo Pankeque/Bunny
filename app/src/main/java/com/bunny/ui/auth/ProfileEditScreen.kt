@@ -155,7 +155,7 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = "Dark theme is Bunny's default.",
+                            text = "Your current theme is preserved.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -181,10 +181,11 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
                         }
                         if (hasError) return@GradientButton
                         isLoading = true
+                        val currentTheme = prefs.getString(Constants.KEY_THEME, "dark") ?: "dark"
                         if (avatarBytes != null && avatarMime != null) {
                             viewModel.uploadAvatar(avatarBytes!!, avatarMime!!) { avatarResult ->
                                 avatarResult.onSuccess {
-                                    viewModel.updateProfile(username, null, "dark") { result ->
+                                    viewModel.updateProfile(username, null, currentTheme) { result ->
                                         isLoading = false
                                         result.onSuccess {
                                             navController.popBackStack()
@@ -198,7 +199,7 @@ fun ProfileEditScreen(navController: NavController, modifier: Modifier = Modifie
                                 }
                             }
                         } else {
-                            viewModel.updateProfile(username, null, "dark") { result ->
+                            viewModel.updateProfile(username, null, currentTheme) { result ->
                                 isLoading = false
                                 result.onSuccess {
                                     navController.popBackStack()
