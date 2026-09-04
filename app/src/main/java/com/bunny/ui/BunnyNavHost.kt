@@ -254,8 +254,7 @@ fun BunnySideNavRail(
 
     NavigationRail(
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 0.dp
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         PrimaryNavItems.forEach { screen ->
             val selected = screen.matchRoute(currentRoute)
