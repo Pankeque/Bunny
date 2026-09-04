@@ -3,7 +3,6 @@ package com.bunny.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Tag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,8 +22,6 @@ import com.bunny.ui.servers.ChannelPane
 import com.bunny.ui.servers.CreateServerDialog
 import com.bunny.ui.servers.InviteCodeDialog
 import com.bunny.ui.servers.JoinServerDialog
-import com.bunny.ui.servers.RailCircleButton
-import com.bunny.ui.servers.RightActionRail
 import com.bunny.ui.servers.ServerRail
 import com.bunny.ui.servers.ServerViewModel
 import kotlinx.coroutines.launch
@@ -32,13 +29,12 @@ import kotlinx.coroutines.launch
 // Workspace layout:
 //   - Portrait/mobile (< 600dp):
 //       [ServerRail] [ChannelPane | empty state]
-//       Bottom navigation footer with Servers / Friends / Messages /
-//       Profile. Tapping a channel navigates to a full-screen chat route.
+//       Bottom navigation footer with Servers / Friends / Profile.
+//       Tapping a channel navigates to a full-screen chat route.
 //   - Landscape / tablet (>= 600dp):
-//       [ServerRail] [ChannelPane] [ChatScreen] [RightActionRail]
-//       No bottom nav. The right rail mirrors the DM / Create / Join /
-//       Profile actions on the right edge of the screen so they stay
-//       thumb-reachable.
+//       [ServerRail] [ChannelPane] [ChatScreen]
+//       The bottom navigation footer is always visible so the same
+//       navigation surface is used regardless of orientation.
 @Composable
 fun ServerWorkspace(
     navController: NavHostController,
@@ -106,8 +102,10 @@ fun ServerWorkspace(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            // In wide layouts the rails replace the bottom nav, so hide it.
-            if (!isWide) BunnyBottomNav(navController)
+            // The footer (Servers / Friends / Profile) is always shown — it
+            // is the primary navigation surface, replacing the right action
+            // rail that used to live on the right edge in landscape.
+            BunnyBottomNav(navController)
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
@@ -116,10 +114,8 @@ fun ServerWorkspace(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Left rail: server list + DM shortcut + action buttons at the
-            // bottom. The same 4 action buttons are also mirrored on the
-            // right edge in landscape/tablet (where there's no bottom nav
-            // and the user benefits from a thumb-reachable right rail).
+            // Left rail: server list + DM shortcut. Profile action is no
+            // longer duplicated here — it lives in the footer.
             ServerRail(
                 servers = servers,
                 selectedServerId = selectedServerId,
@@ -134,19 +130,7 @@ fun ServerWorkspace(
                 },
                 onCreateClick = { showCreateDialog = true },
                 onJoinClick = { showJoinDialog = true },
-                modifier = Modifier.width(72.dp),
-                bottomExtra = {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    RailCircleButton(
-                        icon = Icons.Outlined.Person,
-                        description = "Profile",
-                        onClick = {
-                            navController.navigate("profile") {
-                                launchSingleTop = true
-                            }
-                        }
-                    )
-                }
+                modifier = Modifier.width(72.dp)
             )
             Box(
                 modifier = Modifier
@@ -261,35 +245,6 @@ fun ServerWorkspace(
                         )
                     }
                 }
-            }
-
-            // Right rail (landscape/tablet only): a mirror of the 4 action
-            // buttons (DM, Create, Join, Profile) on the right edge of the
-            // screen. In portrait the bottom navigation already provides
-            // navigation so this rail is hidden to save horizontal space.
-            if (isWide) {
-                Box(
-                    modifier = Modifier
-                        .width(1.dp)
-                        .fillMaxHeight()
-                        .background(MaterialTheme.colorScheme.outlineVariant)
-                )
-                RightActionRail(
-                    onDmClick = {
-                        navController.navigate("dms") {
-                            popUpTo(navController.graph.startDestinationId)
-                            launchSingleTop = true
-                        }
-                    },
-                    onCreateClick = { showCreateDialog = true },
-                    onJoinClick = { showJoinDialog = true },
-                    onProfileClick = {
-                        navController.navigate("profile") {
-                            launchSingleTop = true
-                        }
-                    },
-                    modifier = Modifier.width(72.dp)
-                )
             }
         }
     }

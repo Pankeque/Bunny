@@ -166,7 +166,7 @@ fun BunnyNavHost() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BunnyBottomNav(navController: NavController) {
-    val items = listOf(Screen.Servers, Screen.Friends, Screen.Messages, Screen.Profile)
+    val items = listOf(Screen.Servers, Screen.Friends, Screen.Profile)
     val context = LocalContext.current
     val unreadStore = remember {
         EntryPointAccessors.fromApplication(context.applicationContext, UnreadStoreEntryPoint::class.java)
@@ -183,7 +183,7 @@ fun BunnyBottomNav(navController: NavController) {
         items.forEach { screen ->
             NavigationBarItem(
                 icon = {
-                    if (screen == Screen.Messages && totalUnread > 0) {
+                    if (screen == Screen.Profile && totalUnread > 0) {
                         BadgedBox(badge = { Badge { Text(if (totalUnread > 99) "99+" else "$totalUnread") } }) {
                             Icon(screen.icon, contentDescription = screen.title)
                         }
