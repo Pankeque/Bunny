@@ -145,9 +145,7 @@ fun ChannelSettingScreen(navController: NavController, serverId: Int, channelId:
                 viewModel.deleteChannel(channelId) { result ->
                     isLoading = false
                     result.onSuccess {
-                        navController.navigate("channels/$serverId") {
-                            popUpTo("channels/$serverId") { inclusive = true }
-                        }
+                        navController.popBackStack()
                     }.onFailure { e ->
                         errorMessage = e.message ?: "Failed to delete channel"
                     }

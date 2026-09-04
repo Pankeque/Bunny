@@ -81,6 +81,12 @@ fun ChatScreen(
         viewModel.subscribeToChannel(channelId)
 
         channelName = "Channel #$channelId"
+    }
+
+    // Resolve channel name + server icon only when the server id is known
+    // (i.e. >= 1). This avoids re-fetching the entire channel and server list
+    // every time channelId changes while serverId is still -1.
+    LaunchedEffect(serverId, channelId) {
         if (serverId > 0) {
             channelsViewModel.loadChannels(serverId) { result ->
                 result.onSuccess { channels ->

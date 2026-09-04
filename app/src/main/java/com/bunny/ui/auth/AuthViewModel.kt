@@ -90,7 +90,7 @@ class AuthViewModel @Inject constructor(
     fun updateProfile(username: String?, avatarUrl: String?, theme: String?, onResult: (Result<Unit>) -> Unit) {
         viewModelScope.launch {
             val result = userRepository.updateProfile(username, avatarUrl, theme)
-            if (result.isSuccess) {
+            if (result.isSuccess && theme != null) {
                 themeManager.setTheme(ThemeUtils.getThemeFromString(theme))
             }
             onResult(result.map { })

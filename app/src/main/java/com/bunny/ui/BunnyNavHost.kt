@@ -35,6 +35,7 @@ import com.bunny.ui.auth.ProfileEditScreen
 import com.bunny.ui.auth.ProfileScreen
 import com.bunny.ui.auth.RegisterScreen
 import com.bunny.ui.auth.SplashScreen
+import com.bunny.ui.chat.ChatScreen
 import com.bunny.ui.channels.ChannelSettingScreen
 import com.bunny.ui.dms.DirectMessagesScreen
 import com.bunny.ui.dms.DmChatScreen
@@ -46,7 +47,7 @@ import dagger.hilt.android.EntryPointAccessors
 sealed class Screen(val route: String, val title: String, val icon: ImageVector, val matchRoute: (String?) -> Boolean) {
     object Servers : Screen(
         "servers", "Servers", Icons.Outlined.Dns,
-        { route -> route == "servers" || route?.startsWith("channels/") == true || route?.startsWith("chat/") == true }
+        { route -> route == "servers" || route?.startsWith("chat/") == true }
     )
     object Friends : Screen(
         "friends", "Friends", Icons.Outlined.PersonAdd,
@@ -94,20 +95,6 @@ fun BunnyNavHost() {
             )
         }
 
-        composable("channels/{serverId}") { backStackEntry ->
-            val serverId = backStackEntry.arguments?.getString("serverId")?.toIntOrNull() ?: 0
-            ServerWorkspace(
-                navController = navController,
-                selectedServerId = serverId,
-                selectedChannelId = selectedChannelId,
-                onServerSelected = {
-                    selectedServerId = it
-                    selectedChannelId = null
-                },
-                onChannelSelected = { selectedChannelId = it }
-            )
-        }
-
         composable(
             route = "chat/{channelId}?serverId={serverId}",
             arguments = listOf(
@@ -120,15 +107,13 @@ fun BunnyNavHost() {
         ) { backStackEntry ->
             val channelId = backStackEntry.arguments?.getInt("channelId") ?: 0
             val serverId = backStackEntry.arguments?.getInt("serverId") ?: -1
-            ServerWorkspace(
+            ChatScreen(
                 navController = navController,
-                selectedServerId = if (serverId > 0) serverId else selectedServerId,
-                selectedChannelId = channelId,
-                onServerSelected = {
-                    selectedServerId = it
-                    selectedChannelId = null
-                },
-                onChannelSelected = { selectedChannelId = it }
+                channelId = channelId,
+                serverId = if (serverId > 0) serverId else (selectedServerId ?: -1),
+                modifier = Modifier.fillMaxSize(),
+                embedded = false,
+                onMembersClick = null
             )
         }
 

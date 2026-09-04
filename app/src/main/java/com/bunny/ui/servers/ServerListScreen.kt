@@ -135,9 +135,7 @@ fun ServersHome(
                         server = activeServer,
                         channels = channels,
                         selectedChannelId = null,
-                        onChannelClick = { channel ->
-                            navController.navigate("chat/${channel.id}?serverId=${activeServer.id}")
-                        },
+                        onChannelClick = { /* handled by parent workspace */ },
                         onChannelSettings = { channel ->
                             navController.navigate("channels/${activeServer.id}/${channel.id}/settings")
                         },
