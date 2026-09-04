@@ -15,6 +15,14 @@ A instalação por APK é recomendada para testes e uso sem Google Play.
 2. Abra o arquivo `.apk` no dispositivo.
 3. Toque em **Instalar** e aguarde.
 
+### Publicando uma nova release
+Crie e envie uma tag semântica para disparar o workflow de release:
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+O GitHub Actions compila o APK release assinado e cria automaticamente a release com o APK anexado. `versionName` é derivado da tag e `versionCode` é incrementado a cada commit.
+
 ## Building from Source
 
 - Linux/macOS: `./gradlew assembleDebug`
