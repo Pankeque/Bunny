@@ -56,9 +56,9 @@ import com.bunny.ui.theme.BunnyAccent
 import com.bunny.ui.theme.WordmarkStyle
 
 fun brandGradientColors(theme: AppTheme): List<Color> = when (theme) {
-    AppTheme.DARK -> listOf(BunnyAccent, Color(0xFFB8541A))
-    AppTheme.LIGHT -> listOf(Color(0xFFC75A1A), Color(0xFFE8702A))
-    AppTheme.YELLOW -> listOf(Color(0xFFFFB24D), Color(0xFFE8702A))
+    AppTheme.DARK -> listOf(BunnyAccent, Color(0xFFA8893A))
+    AppTheme.LIGHT -> listOf(Color(0xFFB8902F), Color(0xFFD4A847))
+    AppTheme.YELLOW -> listOf(Color(0xFFC9A84E), Color(0xFFD4A847))
 }
 
 fun brandGradientBrush(theme: AppTheme): Brush =
@@ -298,7 +298,7 @@ fun DialogTitleText(text: String) {
 fun ConnectionDot(state: ConnectionState, modifier: Modifier = Modifier) {
     val color = when (state) {
         is ConnectionState.Connected -> Color(0xFF3FB950)
-        is ConnectionState.Reconnecting -> Color(0xFFFFB24D)
+        is ConnectionState.Reconnecting -> Color(0xFFD4A847)
         else -> Color(0xFFFF6B6B)
     }
     val alpha by animateFloatAsState(

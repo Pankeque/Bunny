@@ -11,10 +11,12 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-// Bunny — mobile-first palette. Dark theme is mandatory.
+// Bunny — mobile-first palette. Dark theme is the default.
 // Near-black background, dark gray surfaces, white/white-70 text,
-// soft orange accent (#E8702A) for CTAs and highlights.
-val BunnyAccent = Color(0xFFE8702A)
+// soft muted yellow accent (#D4A847) for CTAs and highlights. The
+// yellow is intentionally desaturated so it does not feel neon —
+// closer to a warm honey / dark gold than to bright primary yellow.
+val BunnyAccent = Color(0xFFD4A847)
 val BunnyBackground = Color(0xFF0A0A0B)
 val BunnySurface = Color(0xFF111113)
 val BunnySurfaceVariant = Color(0xFF1A1A1E)
@@ -28,17 +30,17 @@ val BunnyDialogGray = Color(0xFF333338)
 
 private val NightColorScheme = darkColorScheme(
     primary = BunnyAccent,
-    onPrimary = Color(0xFFFFFFFF),
-    primaryContainer = Color(0xFF3A1E0F),
-    onPrimaryContainer = Color(0xFFFFDBC6),
+    onPrimary = Color(0xFF1A1408),
+    primaryContainer = Color(0xFF3A2E10),
+    onPrimaryContainer = Color(0xFFE8D9B0),
     secondary = Color(0xFFA8A8AD),
     onSecondary = Color(0xFF1C1C1F),
     secondaryContainer = Color(0xFF2B2B30),
     onSecondaryContainer = Color(0xFFE9E9EC),
-    tertiary = Color(0xFFFFB24D),
-    onTertiary = Color(0xFF2D160A),
-    tertiaryContainer = Color(0xFF3A2210),
-    onTertiaryContainer = Color(0xFFFFD9C0),
+    tertiary = Color(0xFFC9A84E),
+    onTertiary = Color(0xFF1A1408),
+    tertiaryContainer = Color(0xFF3A2E10),
+    onTertiaryContainer = Color(0xFFE8D9B0),
     background = BunnyBackground,
     onBackground = BunnyTextPrimary,
     surface = BunnySurface,
@@ -54,20 +56,20 @@ private val NightColorScheme = darkColorScheme(
     scrim = Color(0xFF000000),
     inverseSurface = BunnyTextPrimary,
     inverseOnSurface = BunnySurface,
-    inversePrimary = Color(0xFFFFDBC6),
+    inversePrimary = Color(0xFFE8D9B0),
     surfaceTint = BunnyAccent
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFFC75A1A),
+    primary = Color(0xFFB8902F),
     onPrimary = Color(0xFFFFFFFF),
-    primaryContainer = Color(0xFFFFE2D2),
-    onPrimaryContainer = Color(0xFF2D160A),
+    primaryContainer = Color(0xFFF5E6C2),
+    onPrimaryContainer = Color(0xFF2A1F08),
     secondary = Color(0xFF5F5F64),
     onSecondary = Color(0xFFFFFFFF),
     secondaryContainer = Color(0xFFE9E9EC),
     onSecondaryContainer = Color(0xFF1C1C1F),
-    tertiary = Color(0xFFA1541E),
+    tertiary = Color(0xFF8C6F1F),
     onTertiary = Color(0xFFFFFFFF),
     background = Color(0xFFF7F6F4),
     onBackground = Color(0xFF1B1B1D),
@@ -84,19 +86,19 @@ private val LightColorScheme = lightColorScheme(
     scrim = Color(0xFF000000),
     inverseSurface = Color(0xFF1B1B1D),
     inverseOnSurface = Color(0xFFF2F2F4),
-    inversePrimary = Color(0xFFFFB48A),
-    surfaceTint = Color(0xFFC75A1A)
+    inversePrimary = Color(0xFFD4A847),
+    surfaceTint = Color(0xFFB8902F)
 )
 
 private val AmberColorScheme = darkColorScheme(
-    primary = Color(0xFFFFB24D),
-    onPrimary = Color(0xFF2D160A),
-    primaryContainer = Color(0xFF3A2210),
-    onPrimaryContainer = Color(0xFFFFD9C0),
-    secondary = Color(0xFFE8702A),
-    onSecondary = Color(0xFFFFFFFF),
-    secondaryContainer = Color(0xFF3A1E0F),
-    onSecondaryContainer = Color(0xFFFFDBC6),
+    primary = Color(0xFFC9A84E),
+    onPrimary = Color(0xFF1A1408),
+    primaryContainer = Color(0xFF3A2E10),
+    onPrimaryContainer = Color(0xFFE8D9B0),
+    secondary = Color(0xFFD4A847),
+    onSecondary = Color(0xFF1A1408),
+    secondaryContainer = Color(0xFF3A2E10),
+    onSecondaryContainer = Color(0xFFE8D9B0),
     tertiary = Color(0xFFA8A8AD),
     onTertiary = Color(0xFF1C1C1F),
     background = Color(0xFF0F0D0A),
@@ -114,8 +116,8 @@ private val AmberColorScheme = darkColorScheme(
     scrim = Color(0xFF000000),
     inverseSurface = Color(0xFFF2EFE8),
     inverseOnSurface = Color(0xFF171512),
-    inversePrimary = Color(0xFFFFD9C0),
-    surfaceTint = Color(0xFFFFB24D)
+    inversePrimary = Color(0xFFE8D9B0),
+    surfaceTint = Color(0xFFC9A84E)
 )
 
 enum class AppTheme(val id: String) {

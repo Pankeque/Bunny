@@ -31,13 +31,14 @@ import kotlinx.coroutines.launch
 
 // Workspace layout:
 //   - Portrait/mobile (< 600dp):
-//       [ServerRail] [ChannelPane | empty] [RightActionRail]
-//       Bottom navigation shown. Channel pane hides when no server is
-//       selected. Tapping a channel navigates to a full-screen chat route.
+//       [ServerRail] [ChannelPane | empty state]
+//       Bottom navigation footer with Servers / Friends / Messages /
+//       Profile. Tapping a channel navigates to a full-screen chat route.
 //   - Landscape / tablet (>= 600dp):
-//       [ServerRail] [ChannelPane] [ChatScreen]
-//       No bottom nav, no right rail — the server rail absorbs the profile
-//       action so the chat gets as much room as possible.
+//       [ServerRail] [ChannelPane] [ChatScreen] [RightActionRail]
+//       No bottom nav. The right rail mirrors the DM / Create / Join /
+//       Profile actions on the right edge of the screen so they stay
+//       thumb-reachable.
 @Composable
 fun ServerWorkspace(
     navController: NavHostController,
@@ -115,10 +116,10 @@ fun ServerWorkspace(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Left rail: server list + DM shortcut. The action buttons that
-            // used to live at the bottom here are mirrored on the right rail
-            // in portrait (and stay here in wide mode where there's no right
-            // rail).
+            // Left rail: server list + DM shortcut + action buttons at the
+            // bottom. The same 4 action buttons are also mirrored on the
+            // right edge in landscape/tablet (where there's no bottom nav
+            // and the user benefits from a thumb-reachable right rail).
             ServerRail(
                 servers = servers,
                 selectedServerId = selectedServerId,
@@ -135,18 +136,16 @@ fun ServerWorkspace(
                 onJoinClick = { showJoinDialog = true },
                 modifier = Modifier.width(72.dp),
                 bottomExtra = {
-                    if (isWide) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        RailCircleButton(
-                            icon = Icons.Outlined.Person,
-                            description = "Profile",
-                            onClick = {
-                                navController.navigate("profile") {
-                                    launchSingleTop = true
-                                }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    RailCircleButton(
+                        icon = Icons.Outlined.Person,
+                        description = "Profile",
+                        onClick = {
+                            navController.navigate("profile") {
+                                launchSingleTop = true
                             }
-                        )
-                    }
+                        }
+                    )
                 }
             )
             Box(
@@ -264,9 +263,11 @@ fun ServerWorkspace(
                 }
             }
 
-            // Right rail (portrait only): mirror of the 4 action buttons
-            // (DM, Create, Join, Profile) on the right edge of the screen.
-            if (!isWide) {
+            // Right rail (landscape/tablet only): a mirror of the 4 action
+            // buttons (DM, Create, Join, Profile) on the right edge of the
+            // screen. In portrait the bottom navigation already provides
+            // navigation so this rail is hidden to save horizontal space.
+            if (isWide) {
                 Box(
                     modifier = Modifier
                         .width(1.dp)
