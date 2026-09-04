@@ -163,27 +163,58 @@ fun BunnyNavHost() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+// The three primary destinations shown in both the bottom bar (portrait)
+// and the right navigation rail (landscape/tablet).
+private val PrimaryNavItems: List<Screen> = listOf(Screen.Servers, Screen.Friends, Screen.Profile)
+
+/**
+ * Read the current unread count from the [UnreadStore] so we can badge
+ * the Profile item when the user has pending messages.
+ */
 @Composable
-fun BunnyBottomNav(navController: NavController) {
-    val items = listOf(Screen.Servers, Screen.Friends, Screen.Profile)
+private fun rememberUnreadCount(): Int {
     val context = LocalContext.current
     val unreadStore = remember {
         EntryPointAccessors.fromApplication(context.applicationContext, UnreadStoreEntryPoint::class.java)
             .unreadStore()
     }
-    val totalUnread by unreadStore.total.collectAsStateWithLifecycle()
+    return unreadStore.total.collectAsStateWithLifecycle().value
+}
+
+/**
+ * Resolve the current [NavController] destination route for matching
+ * against the [Screen.matchRoute] predicate.
+ */
+@Composable
+private fun rememberCurrentRoute(navController: NavController): String? {
+    val navBackStackEntry = navController.currentBackStackEntryAsState()
+    return navBackStackEntry.value?.destination?.route
+}
+
+private fun navigateToTopLevel(navController: NavController, route: String) {
+    navController.navigate(route) {
+        popUpTo(navController.graph.startDestinationId)
+        launchSingleTop = true
+        restoreState = true
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BunnyBottomNav(navController: NavController) {
+    val totalUnread = rememberUnreadCount()
+    val currentRoute = rememberCurrentRoute(navController)
 
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp
     ) {
-        val navBackStackEntry = navController.currentBackStackEntryAsState()
-        val currentDestination = navBackStackEntry.value?.destination
-        items.forEach { screen ->
+        PrimaryNavItems.forEach { screen ->
+            val selected = screen.matchRoute(currentRoute)
+            val showBadge = screen == Screen.Profile && totalUnread > 0
             NavigationBarItem(
                 icon = {
-                    if (screen == Screen.Profile && totalUnread > 0) {
+                    if (showBadge) {
                         BadgedBox(badge = { Badge { Text(if (totalUnread > 99) "99+" else "$totalUnread") } }) {
                             Icon(screen.icon, contentDescription = screen.title)
                         }
@@ -192,7 +223,7 @@ fun BunnyBottomNav(navController: NavController) {
                     }
                 },
                 label = { Text(screen.title, style = MaterialTheme.typography.labelMedium) },
-                selected = screen.matchRoute(currentDestination?.route),
+                selected = selected,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,
                     selectedTextColor = MaterialTheme.colorScheme.primary,
@@ -200,13 +231,55 @@ fun BunnyBottomNav(navController: NavController) {
                     unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
-                onClick = {
-                    navController.navigate(screen.route) {
-                        popUpTo(navController.graph.startDestinationId)
-                        launchSingleTop = true
-                        restoreState = true
+                onClick = { navigateToTopLevel(navController, screen.route) }
+            )
+        }
+    }
+}
+
+/**
+ * Vertical navigation rail used in landscape/tablet layouts. Renders the
+ * same three primary destinations (Servers / Friends / Profile) stacked
+ * on the right edge of the screen instead of at the bottom. The host
+ * decides which one to use based on the available width.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BunnySideNavRail(
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
+    val totalUnread = rememberUnreadCount()
+    val currentRoute = rememberCurrentRoute(navController)
+
+    NavigationRail(
+        modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp
+    ) {
+        PrimaryNavItems.forEach { screen ->
+            val selected = screen.matchRoute(currentRoute)
+            val showBadge = screen == Screen.Profile && totalUnread > 0
+            NavigationRailItem(
+                icon = {
+                    if (showBadge) {
+                        BadgedBox(badge = { Badge { Text(if (totalUnread > 99) "99+" else "$totalUnread") } }) {
+                            Icon(screen.icon, contentDescription = screen.title)
+                        }
+                    } else {
+                        Icon(screen.icon, contentDescription = screen.title)
                     }
-                }
+                },
+                label = { Text(screen.title, style = MaterialTheme.typography.labelSmall) },
+                selected = selected,
+                colors = NavigationRailItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                onClick = { navigateToTopLevel(navController, screen.route) }
             )
         }
     }

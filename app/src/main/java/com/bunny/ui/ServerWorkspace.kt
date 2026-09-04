@@ -32,9 +32,9 @@ import kotlinx.coroutines.launch
 //       Bottom navigation footer with Servers / Friends / Profile.
 //       Tapping a channel navigates to a full-screen chat route.
 //   - Landscape / tablet (>= 600dp):
-//       [ServerRail] [ChannelPane] [ChatScreen]
-//       The bottom navigation footer is always visible so the same
-//       navigation surface is used regardless of orientation.
+//       [ServerRail] [ChannelPane] [ChatScreen] [SideNavRail]
+//       The bottom navigation footer becomes a vertical navigation
+//       rail on the right edge, holding the same three items.
 @Composable
 fun ServerWorkspace(
     navController: NavHostController,
@@ -102,10 +102,10 @@ fun ServerWorkspace(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            // The footer (Servers / Friends / Profile) is always shown — it
-            // is the primary navigation surface, replacing the right action
-            // rail that used to live on the right edge in landscape.
-            BunnyBottomNav(navController)
+            // Portrait: keep the bottom navigation footer. The landscape
+            // counterpart is rendered as a right-side vertical rail inside
+            // the content area so it sits flush with the screen edge.
+            if (!isWide) BunnyBottomNav(navController)
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
@@ -245,6 +245,16 @@ fun ServerWorkspace(
                         )
                     }
                 }
+            }
+
+            // Landscape/tablet only: the bottom navigation footer becomes
+            // a vertical navigation rail on the right edge of the screen,
+            // holding the same Servers / Friends / Profile destinations.
+            if (isWide) {
+                BunnySideNavRail(
+                    navController = navController,
+                    modifier = Modifier.width(80.dp)
+                )
             }
         }
     }
