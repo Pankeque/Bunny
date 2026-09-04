@@ -13,6 +13,7 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Tag
 import androidx.compose.material3.*
@@ -52,25 +53,32 @@ fun ServerRail(
             .background(MaterialTheme.colorScheme.surface)
     ) {
         LazyColumn(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
             contentPadding = PaddingValues(top = 8.dp, bottom = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item(key = "direct-messages") {
-                RailCircleButton(
-                    icon = Icons.Outlined.ChatBubbleOutline,
-                    description = "Direct Messages",
-                    onClick = onDmClick,
-                    highlighted = true
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Box(
-                    modifier = Modifier
-                        .width(36.dp)
-                        .height(1.dp)
-                        .background(MaterialTheme.colorScheme.outlineVariant)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    RailCircleButton(
+                        icon = Icons.Outlined.ChatBubbleOutline,
+                        description = "Direct Messages",
+                        onClick = onDmClick,
+                        highlighted = true
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .width(36.dp)
+                            .height(1.dp)
+                            .background(MaterialTheme.colorScheme.outlineVariant)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
             items(servers, key = { it.id }) { server ->
                 ServerRailIcon(
@@ -191,6 +199,65 @@ internal fun RailCircleButton(
             tint = if (highlighted) Color.White else MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(22.dp)
         )
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// RightActionRail — secondary action sidebar shown on portrait
+// at the right edge of the screen. Mirrors the 4 action buttons
+// (DM, Create, Join, Profile) so they're reachable with the thumb
+// without crowding the left server rail.
+// ─────────────────────────────────────────────────────────────
+@Composable
+fun RightActionRail(
+    onDmClick: () -> Unit,
+    onCreateClick: () -> Unit,
+    onJoinClick: () -> Unit,
+    onProfileClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxHeight()
+            .background(MaterialTheme.colorScheme.surface),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(MaterialTheme.colorScheme.outlineVariant)
+        )
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            RailCircleButton(
+                icon = Icons.Outlined.ChatBubbleOutline,
+                description = "Direct Messages",
+                onClick = onDmClick,
+                highlighted = true
+            )
+            RailCircleButton(
+                icon = Icons.Outlined.Add,
+                description = "Create server",
+                onClick = onCreateClick
+            )
+            RailCircleButton(
+                icon = Icons.Outlined.Key,
+                description = "Join with code",
+                onClick = onJoinClick
+            )
+            RailCircleButton(
+                icon = Icons.Outlined.Person,
+                description = "Profile",
+                onClick = onProfileClick
+            )
+        }
     }
 }
 
