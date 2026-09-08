@@ -246,16 +246,6 @@ fun ServerWorkspace(
                     }
                 }
             }
-
-            // Landscape/tablet only: the bottom navigation footer becomes
-            // a vertical navigation rail on the right edge of the screen,
-            // holding the same Servers / Friends / Profile destinations.
-            if (isWide) {
-                BunnySideNavRail(
-                    navController = navController,
-                    modifier = Modifier.width(80.dp)
-                )
-            }
         }
     }
 
