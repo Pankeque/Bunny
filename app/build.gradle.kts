@@ -18,15 +18,14 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
+        buildConfigField("String", "BASE_URL", "\"https://bunny-backend-lq2l.onrender.com/\"")
+        buildConfigField("String", "SOCKET_URL", "\"wss://bunny-backend-lq2l.onrender.com\"")
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Sign release APKs with the debug keystore so they are installable
-            // out of the box from CI / GitHub Releases. Replace with a real
-            // production signingConfig before publishing to Google Play.
             signingConfig = signingConfigs.getByName("debug")
         }
     }

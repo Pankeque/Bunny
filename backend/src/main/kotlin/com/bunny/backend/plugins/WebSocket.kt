@@ -148,7 +148,8 @@ fun Application.configureWebSockets() {
     }
 
     routing {
-        val jwtSecret = System.getenv("JWT_SECRET") ?: "your-secret-key-change-in-production"
+        val jwtSecret = System.getenv("JWT_SECRET")
+            ?: throw IllegalStateException("JWT_SECRET environment variable must be set")
         val jwtIssuer = System.getenv("JWT_ISSUER") ?: "bunny"
         val jwtAlgorithm = Algorithm.HMAC256(jwtSecret)
         val verifier = JWT.require(jwtAlgorithm).withIssuer(jwtIssuer).build()

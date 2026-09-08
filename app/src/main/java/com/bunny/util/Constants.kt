@@ -9,6 +9,8 @@ object Constants {
     const val KEY_AVATAR_URL = "avatar_url"
     const val KEY_THEME = "theme"
 
-    const val BASE_URL = "https://bunny-backend-lq2l.onrender.com/"
-    const val SOCKET_URL = "wss://bunny-backend-lq2l.onrender.com"
+    val BASE_URL: String
+        get() = com.bunny.BuildConfig.BASE_URL
+    val SOCKET_URL: String
+        get() = com.bunny.BuildConfig.SOCKET_URL
 }

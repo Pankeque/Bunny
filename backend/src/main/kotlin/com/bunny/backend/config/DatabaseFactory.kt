@@ -76,16 +76,14 @@ object DatabaseFactory {
         val host = env["PGHOST"]
         if (host != null) {
             return JdbcInfo(
-                url = "jdbc:postgresql://$host:${env["PGPORT"] ?: "5432"}/${env["PGDATABASE"] ?: "bunny"}",
+                url = "jdbc:postgresql://$host:${env["PGPORT"] ?: "5432"}/${env["PGDATABASE"] ?: "postgres"}",
                 username = env["DATABASE_USER"] ?: env["PGUSER"] ?: "postgres",
                 password = env["DATABASE_PASSWORD"] ?: env["PGPASSWORD"] ?: "postgres"
             )
         }
 
-        return JdbcInfo(
-            url = "jdbc:postgresql://localhost:5432/bunny",
-            username = env["DATABASE_USER"] ?: "postgres",
-            password = env["DATABASE_PASSWORD"] ?: "postgres"
+        throw IllegalStateException(
+            "Database configuration missing. Set SUPABASE_DATABASE_URL or PGHOST/PGPORT/PGDATABASE/PGUSER/PGPASSWORD."
         )
     }
 
