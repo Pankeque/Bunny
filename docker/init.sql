@@ -57,3 +57,29 @@ CREATE TABLE IF NOT EXISTS messages (
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS friendships (
+    id SERIAL PRIMARY KEY,
+    user_one INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    user_two INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    initiator_id INTEGER NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_one, user_two)
+);
+
+CREATE TABLE IF NOT EXISTS direct_conversations (
+    id SERIAL PRIMARY KEY,
+    user_one INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    user_two INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_one, user_two)
+);
+
+CREATE TABLE IF NOT EXISTS direct_messages (
+    id SERIAL PRIMARY KEY,
+    conversation_id INTEGER REFERENCES direct_conversations(id) ON DELETE CASCADE,
+    sender_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
