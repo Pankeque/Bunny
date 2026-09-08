@@ -1,19 +1,5 @@
 version: "3.9"
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: bunny-postgres
-    environment:
-      POSTGRES_DB: bunny
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
-    restart: unless-stopped
-
   bunny-backend:
     build:
       context: .
@@ -22,13 +8,15 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DATABASE_URL: jdbc:postgresql://postgres:5432/bunny
-      DATABASE_USER: postgres
-      DATABASE_PASSWORD: postgres
-      JWT_SECRET: your-super-secret-jwt-key-change-in-production
-    depends_on:
-      - postgres
+      # Supabase PostgreSQL connection. The connection string is provided
+      # by Supabase (Settings > Database > Connection string) and looks like
+      #   postgres://postgres.<PROJECT_REF>:<DB_PASSWORD>@aws-0-<REGION>.supabase.co:5432/postgres
+      # It is injected as SUPABASE_DATABASE_URL so the backend never
+      # hardcodes the project reference or the password.
+      DATABASE_URL: ${SUPABASE_DATABASE_URL}
+      DATABASE_USER: ${SUPABASE_DATABASE_USER:-postgres}
+      DATABASE_PASSWORD: ${SUPABASE_DATABASE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      JWT_ISSUER: ${JWT_ISSUER:-bunny}
+      JWT_REALM: ${JWT_REALM:-bunny}
     restart: unless-stopped
-
-volumes:
-  postgres_data:

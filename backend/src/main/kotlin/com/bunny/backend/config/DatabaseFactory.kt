@@ -52,13 +52,19 @@ object DatabaseFactory {
     }
 
     private fun jdbcInfo(env: Map<String, String>): JdbcInfo {
-        val rawUrl = env["DATABASE_URL"]
+        // Supabase exposes the connection string via SUPABASE_DATABASE_URL
+        // (Settings > Database > Connection string). It is a postgres:// URL
+        // with the project reference and password embedded, e.g.
+        //   postgres://postgres.abc123:secret@aws-0-us-east-1.supabase.co:5432/postgres
+        // The DATABASE_URL env var (used by docker-compose) is checked first
+        // so the same code path works for both local Docker and Supabase.
+        val rawUrl = env["SUPABASE_DATABASE_URL"] ?: env["DATABASE_URL"]
         if (rawUrl != null) {
             val parsed = parseUrl(rawUrl)
             if (parsed.username != null) return parsed
             return parsed.copy(
-                username = env["DATABASE_USER"] ?: env["PGUSER"] ?: "postgres",
-                password = env["DATABASE_PASSWORD"] ?: env["PGPASSWORD"] ?: "postgres"
+                username = env["SUPABASE_DATABASE_USER"] ?: env["DATABASE_USER"] ?: env["PGUSER"] ?: "postgres",
+                password = env["SUPABASE_DATABASE_PASSWORD"] ?: env["DATABASE_PASSWORD"] ?: env["PGPASSWORD"] ?: "postgres"
             )
         }
 
