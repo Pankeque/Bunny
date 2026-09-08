@@ -9,7 +9,8 @@ import io.ktor.server.auth.jwt.*
 import java.util.*
 
 fun Application.configureSecurity() {
-    val jwtSecret = System.getenv("JWT_SECRET") ?: "your-secret-key-change-in-production"
+    val jwtSecret = System.getenv("JWT_SECRET")
+        ?: throw IllegalStateException("JWT_SECRET environment variable must be set")
     val jwtIssuer = System.getenv("JWT_ISSUER") ?: "bunny"
     val jwtRealm = System.getenv("JWT_REALM") ?: "bunny"
 
@@ -34,7 +35,8 @@ fun Application.configureSecurity() {
 }
 
 fun generateToken(userId: Int): String {
-    val jwtSecret = System.getenv("JWT_SECRET") ?: "your-secret-key-change-in-production"
+    val jwtSecret = System.getenv("JWT_SECRET")
+        ?: throw IllegalStateException("JWT_SECRET environment variable must be set")
     val jwtIssuer = System.getenv("JWT_ISSUER") ?: "bunny"
     return JWT.create()
         .withIssuer(jwtIssuer)

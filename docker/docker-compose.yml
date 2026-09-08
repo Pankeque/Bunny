@@ -16,7 +16,7 @@ services:
       DATABASE_URL: ${SUPABASE_DATABASE_URL}
       DATABASE_USER: ${SUPABASE_DATABASE_USER:-postgres}
       DATABASE_PASSWORD: ${SUPABASE_DATABASE_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      JWT_SECRET: ${JWT_SECRET}
       JWT_ISSUER: ${JWT_ISSUER:-bunny}
       JWT_REALM: ${JWT_REALM:-bunny}
     restart: unless-stopped

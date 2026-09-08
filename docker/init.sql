@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS servers (
     icon_url TEXT,
     owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     invite_code VARCHAR(20) UNIQUE NOT NULL,
+    expires_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
