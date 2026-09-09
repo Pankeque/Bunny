@@ -94,8 +94,13 @@ object DatabaseFactory {
         if (at < 0) return JdbcInfo(normalized, null, null)
         val credentials = rest.substring(0, at)
         val hostPart = rest.substring(at + 1)
+        val url = if (hostPart.contains("/")) {
+            "jdbc:postgresql://$hostPart"
+        } else {
+            "jdbc:postgresql://$hostPart/postgres"
+        }
         return JdbcInfo(
-            url = "jdbc:postgresql://$hostPart",
+            url = url,
             username = decodeUserInfo(credentials.substringBefore(':')),
             password = decodeUserInfo(credentials.substringAfter(':', ""))
         )
