@@ -56,15 +56,17 @@ object DatabaseFactory {
         // (Settings > Database > Connection string). It is a postgres:// URL
         // with the project reference and password embedded, e.g.
         //   postgres://postgres.abc123:secret@aws-0-us-east-1.supabase.co:5432/postgres
-        // The actual PostgreSQL user on Supabase is just "postgres", so we
-        // strip the project ref if present.
+        // For direct connections the actual PostgreSQL user is just "postgres",
+        // so we strip the project ref. For pooler connections the full
+        // "postgres.<project_ref>" username is required as the tenant identifier.
         // The DATABASE_URL env var (used by docker-compose) is checked first
         // so the same code path works for both local Docker and Supabase.
         val rawUrl = env["SUPABASE_DATABASE_URL"] ?: env["DATABASE_URL"]
         if (rawUrl != null) {
             val parsed = parseUrl(rawUrl)
+            val isPooler = parsed.url.contains("pooler.supabase.com")
             val username = parsed.username?.let { u ->
-                if (u.startsWith("postgres.")) "postgres" else u
+                if (!isPooler && u.startsWith("postgres.")) "postgres" else u
             }
             if (username != null) return parsed.copy(username = username)
             return parsed.copy(
